@@ -34,7 +34,7 @@ def main():
     sample["CustomerID"] = sample["CustomerID"].str.replace(r"\.0$", "", regex=True)
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    sample.to_csv(args.out, index=False)
+    sample.to_csv(args.out, index=False, lineterminator="\n")
     size_mb = os.path.getsize(args.out) / 1024 / 1024
     print(f"Wrote {len(sample):,} rows / {len(keep):,} invoices to {args.out} ({size_mb:.2f} MB)")
 

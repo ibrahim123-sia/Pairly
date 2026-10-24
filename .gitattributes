@@ -1,0 +1,23 @@
+# Normalise line endings in the repo; check out with LF everywhere.
+* text=auto eol=lf
+
+# Windows scripts need CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Keep data byte-for-byte (no line ending changes)
+*.csv -text
+*.parquet binary
+*.xlsx binary
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Notebook diffs are noisy; mark as generated so GitHub collapses them
+*.ipynb linguist-generated=true
