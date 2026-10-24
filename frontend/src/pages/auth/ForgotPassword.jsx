@@ -16,7 +16,7 @@ export const ForgotPassword = () => {
       await forgotPasswordApi(email);
       setSent(true);
       toast.success('If the account exists, a reset email has been sent.');
-    } catch (err) {
+    } catch {
       toast.error('Something went wrong, please try again.');
     } finally {
       setSubmitting(false);

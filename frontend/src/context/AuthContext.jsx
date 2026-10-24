@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       const res = await meApi();
       setUser(res.data.user);
       setStore(res.data.store || null);
-    } catch (err) {
+    } catch {
       clearTokens();
       setUser(null);
       setStore(null);
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    try { await logoutApi(); } catch (_) {}
+    try { await logoutApi(); } catch { /* sign out locally even if the API call fails */ }
     clearTokens();
     setUser(null);
     setStore(null);
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       const res = await meApi();
       setUser(res.data.user);
       setStore(res.data.store || null);
-    } catch (_) {}
+    } catch { /* keep the current session data */ }
   }, []);
 
   const value = {
@@ -71,6 +71,7 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- the hook belongs next to its provider
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

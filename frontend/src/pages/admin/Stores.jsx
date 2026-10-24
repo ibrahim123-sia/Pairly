@@ -13,7 +13,7 @@ export const Stores = () => {
     try {
       const res = await listStoresApi({ per_page: 100 });
       setStores(res.data.items);
-    } catch (e) {
+    } catch {
       toast.error('Could not load stores');
     } finally {
       setLoading(false);

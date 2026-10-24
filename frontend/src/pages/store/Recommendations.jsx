@@ -49,7 +49,7 @@ export const Recommendations = () => {
     try {
       const res = await simulateBundle(items, discount);
       setSimResult(res);
-    } catch (e) {
+    } catch {
       toast.error('Simulation failed');
     } finally {
       setSimulating(false);
@@ -67,7 +67,7 @@ export const Recommendations = () => {
       a.href = url; a.download = 'recommendations.csv'; a.click();
       URL.revokeObjectURL(url);
       toast.success('Downloaded');
-    } catch (e) {
+    } catch {
       toast.error('Download failed');
     }
   };

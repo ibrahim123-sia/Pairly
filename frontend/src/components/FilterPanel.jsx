@@ -26,20 +26,18 @@ export const FilterPanel = ({ onFilterChange, loading }) => {
 
   const [isOpen, setIsOpen] = useState(true);
 
+  const fetchFilterOptions = () =>
+    api.get('/analytics/filters')
+      .then((response) => {
+        if (response.data.success) {
+          setFilterOptions(response.data.filters);
+        }
+      })
+      .catch((error) => console.error('Error fetching filters:', error));
+
   useEffect(() => {
     fetchFilterOptions();
   }, []);
-
-  const fetchFilterOptions = async () => {
-    try {
-      const response = await api.get('/analytics/filters');
-      if (response.data.success) {
-        setFilterOptions(response.data.filters);
-      }
-    } catch (error) {
-      console.error('Error fetching filters:', error);
-    }
-  };
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };

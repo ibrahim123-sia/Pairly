@@ -173,13 +173,6 @@ export const ProductBundles = () => {
     },
   ];
 
-  // Calculate stats
-  const totalRevenue = bundles.reduce((acc, b) => acc + (b.estimated_revenue || 0), 0);
-  const avgConfidence = bundles.length > 0 
-    ? bundles.reduce((acc, b) => acc + (b.confidence || 0), 0) / bundles.length 
-    : 0;
-  const totalTransactions = bundles.reduce((acc, b) => acc + (b.transaction_count || 0), 0);
-
   return (
     <div className="space-y-6">
       <div>
@@ -289,71 +282,6 @@ export const ProductBundles = () => {
 
      
 
-      {/* Bundle Stats */}
-      {/* {!loading && bundles.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Bundles
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {bundles.length}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                <Tag className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Revenue
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${totalRevenue}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-                <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Avg. Confidence
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {(avgConfidence * 100).toFixed(1)}%
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Transactions
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {totalTransactions}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Bundles Table */}
       <div className="card">

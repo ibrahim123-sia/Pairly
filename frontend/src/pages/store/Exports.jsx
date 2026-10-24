@@ -42,7 +42,7 @@ export const Exports = () => {
       a.download = `${type}.csv`;
       a.click();
       window.URL.revokeObjectURL(dl);
-    } catch (err) {
+    } catch {
       toast.error('Download failed');
     }
   };

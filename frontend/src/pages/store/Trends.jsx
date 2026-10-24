@@ -25,8 +25,13 @@ export const Trends = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const selectPeriod = (d) => {
+    if (d === period) return;
     setLoading(true);
+    setPeriod(d);
+  };
+
+  useEffect(() => {
     fetchPeriodComparison(period)
       .then(setData)
       .catch(() => toast.error('Could not load trends'))
@@ -45,7 +50,7 @@ export const Trends = () => {
         </div>
         <div className="flex space-x-2">
           {[7, 30, 90, 180].map((d) => (
-            <button key={d} onClick={() => setPeriod(d)} className={`px-3 py-1.5 text-sm rounded-lg ${period === d ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
+            <button key={d} onClick={() => selectPeriod(d)} className={`px-3 py-1.5 text-sm rounded-lg ${period === d ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
               {d} days
             </button>
           ))}
