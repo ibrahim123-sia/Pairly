@@ -11,6 +11,7 @@ from app.routers.auth import router as auth_router
 from app.routers.admin import router as admin_router
 from app.routers.store import router as store_router
 from app.routers.analytics import router as analytics_router
+from app.routers.ai import router as ai_router, admin_router as ai_admin_router
 from app.services import auth_service, scheduler_service
 
 config = get_config()
@@ -79,6 +80,8 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 app.include_router(store_router, prefix="/api/store", tags=["Store"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
+app.include_router(ai_admin_router, prefix="/api/admin/ai", tags=["Admin", "AI"])
 
 
 @app.get("/")
