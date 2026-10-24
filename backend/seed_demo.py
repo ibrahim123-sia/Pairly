@@ -26,7 +26,7 @@ def seed():
             store = Store(
                 name="Demo Store",
                 slug="demo-store",
-                description="Sample multi-tenant store seeded from legacy CSV.",
+                description="Pairly demo store loaded with the Online Retail II sample dataset.",
                 contact_email="demo@example.com",
                 theme_mode="light",
                 brand_primary_color="#2563eb",

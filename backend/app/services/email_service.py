@@ -68,13 +68,13 @@ def send_new_account_email(user, store, temp_password, db: Session = None):
     )
     text = (
         f"Hello {user.full_name},\n\n"
-        f"An account has been created for you to manage the store '{store.name}'.\n"
+        f"An account has been created for you on Pairly to manage the store '{store.name}'.\n"
         f"Login URL: {frontend}/login\n"
         f"Email: {user.email}\n"
         f"Temporary password: {temp_password}\n\n"
         "You will be prompted to change this password after first login.\n"
     )
-    return _send(f"Welcome to {store.name} - Account Created", [user.email], html, text, db=db)
+    return _send(f"Pairly: your account for {store.name} is ready", [user.email], html, text, db=db)
 
 
 def send_password_reset_email(user, token, db: Session = None):
@@ -87,7 +87,7 @@ def send_password_reset_email(user, token, db: Session = None):
         f"{config.PASSWORD_RESET_TTL_MINUTES} minutes:\n{reset_url}\n\n"
         "If you did not request this, ignore this email.\n"
     )
-    return _send("Password Reset Request", [user.email], html, text, db=db)
+    return _send("Pairly: password reset request", [user.email], html, text, db=db)
 
 
 def send_store_disabled_email(user, store, reason, db: Session = None):
@@ -97,7 +97,7 @@ def send_store_disabled_email(user, store, reason, db: Session = None):
         f"Your store '{store.name}' has been disabled. Reason: {reason or 'Not specified'}.\n"
         "Please contact the administrator for assistance.\n"
     )
-    return _send(f"Store {store.name} has been disabled", [user.email], html, text, db=db)
+    return _send(f"Pairly: store {store.name} has been disabled", [user.email], html, text, db=db)
 
 
 def send_scheduled_summary_email(user, store, summary_payload, db: Session = None):
@@ -107,4 +107,4 @@ def send_scheduled_summary_email(user, store, summary_payload, db: Session = Non
         store=store,
         summary=summary_payload,
     )
-    return _send(f"{store.name} - Scheduled Analytics Summary", [user.email], html, db=db)
+    return _send(f"Pairly: scheduled summary for {store.name}", [user.email], html, db=db)

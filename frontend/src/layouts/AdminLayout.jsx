@@ -17,7 +17,7 @@ export const AdminLayout = () => {
       <Header
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}
-        title="Super Admin Console"
+        title="Pairly Admin"
         subtitle="Manage stores, users, and platform settings"
       />
       <div className="flex">

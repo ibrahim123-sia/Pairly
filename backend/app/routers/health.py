@@ -9,5 +9,6 @@ def health():
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "3.0.0"
+        "service": "pairly-api",
+        "version": "3.1.0",
     }

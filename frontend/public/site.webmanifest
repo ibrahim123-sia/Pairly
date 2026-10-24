@@ -1,0 +1,12 @@
+{
+  "name": "Pairly",
+  "short_name": "Pairly",
+  "description": "Find which products sell together, and turn it into bundles and revenue.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    { "src": "/pairly.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

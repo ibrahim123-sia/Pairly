@@ -43,7 +43,7 @@ export const StoreLayout = () => {
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}
         title={store?.name || 'My Store'}
-        subtitle="Market Basket Analytics"
+        subtitle="Pairly · Market basket analytics"
       />
       <div className="flex">
         <aside

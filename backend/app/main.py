@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -13,6 +14,11 @@ from app.routers.analytics import router as analytics_router
 from app.services import auth_service, scheduler_service
 
 config = get_config()
+logger = logging.getLogger("pairly")
+
+APP_NAME = "Pairly"
+APP_TAGLINE = "Find which products sell together, and turn it into bundles and revenue."
+APP_VERSION = "3.1.0"
 
 
 @asynccontextmanager
@@ -30,7 +36,7 @@ async def lifespan(app: FastAPI):
     try:
         auth_service.ensure_super_admin(db)
     except Exception as exc:
-        print(f"Could not bootstrap super admin on startup: {exc}")
+        logger.warning("Pairly could not bootstrap the super admin on startup: %s", exc)
     finally:
         db.close()
 
@@ -49,9 +55,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Assortment Dashboard API",
-    version="3.0.0",
-    lifespan=lifespan
+    title=f"{APP_NAME} API",
+    description=APP_TAGLINE,
+    version=APP_VERSION,
+    lifespan=lifespan,
 )
 
 # CORS configuration matching allowed origins from config
@@ -74,8 +81,10 @@ app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"]
 @app.get("/")
 def index():
     return {
-        "name": "Assortment Dashboard API",
-        "version": "3.0.0",
+        "name": f"{APP_NAME} API",
+        "tagline": APP_TAGLINE,
+        "version": APP_VERSION,
         "status": "running",
-        "docs": "/api/health",
+        "docs": "/docs",
+        "health": "/api/health",
     }

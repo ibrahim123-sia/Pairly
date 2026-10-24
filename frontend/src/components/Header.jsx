@@ -1,4 +1,6 @@
-import { Sun, Moon, Menu, X, BarChart3, LogOut } from 'lucide-react';
+import { Sun, Moon, Menu, X, LogOut } from 'lucide-react';
+import { Logo } from './Logo';
+import { APP_NAME } from '../brand';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -36,10 +38,10 @@ export const Header = ({ toggleSidebar, isSidebarOpen, title, subtitle }) => {
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <div className="flex items-center ml-2 lg:ml-0">
-              <BarChart3 className="h-8 w-8 text-primary-600" />
+              <Logo className="h-9 w-9" />
               <div className="ml-3">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title || 'Assortment Dashboard'}</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle || 'Market Basket Analytics'}</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title || APP_NAME}</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle || 'Market basket analytics'}</p>
               </div>
             </div>
           </div>

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Welcome</title></head>
+<head><meta charset="utf-8"><title>Welcome | Pairly</title></head>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1f2937;">
   <div style="background:#2563eb; color:#fff; padding:24px; border-radius:8px 8px 0 0;">
     <h1 style="margin:0; font-size:22px;">Welcome to {{ store.name }}</h1>
   </div>
   <div style="background:#f9fafb; padding:24px; border-radius:0 0 8px 8px;">
     <p>Hello {{ user.full_name or user.email }},</p>
-    <p>A store manager account has been created for you on the <strong>Assortment Dashboard</strong> platform.</p>
+    <p>A store manager account has been created for you on the <strong>Pairly</strong> platform.</p>
     <table style="border-collapse: collapse; margin: 16px 0; width: 100%;">
       <tr><td style="padding:8px; background:#fff; border:1px solid #e5e7eb;"><strong>Store</strong></td><td style="padding:8px; background:#fff; border:1px solid #e5e7eb;">{{ store.name }}</td></tr>
       <tr><td style="padding:8px; background:#fff; border:1px solid #e5e7eb;"><strong>Email</strong></td><td style="padding:8px; background:#fff; border:1px solid #e5e7eb;">{{ user.email }}</td></tr>
@@ -19,5 +19,6 @@
     </p>
     <p style="color:#6b7280; font-size:13px;">If you did not expect this email, contact your administrator.</p>
   </div>
+  <p style="color:#9ca3af; font-size:12px; text-align:center; margin-top:24px;">Sent by Pairly &middot; Find which products sell together, and turn it into bundles and revenue.</p>
 </body>
 </html>

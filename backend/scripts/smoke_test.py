@@ -58,7 +58,7 @@ def check(name, actual_status, expected_status, payload_check=None, payload=None
 
 
 print("=" * 60)
-print("ASSORTMENT DASHBOARD - END TO END SMOKE TEST")
+print("PAIRLY - END TO END SMOKE TEST")
 print("=" * 60)
 
 print("\n[1] Public endpoints")

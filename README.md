@@ -1,6 +1,6 @@
-# Assortment Dashboard
+# Pairly
 
-> Multi-tenant Market Basket Analytics SaaS — turn raw retail transactions into association rules, product bundles, and revenue insights.
+> Find which products sell together, and turn it into bundles and revenue.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -14,10 +14,10 @@
 ![Recharts](https://img.shields.io/badge/Recharts-3-22B5BF?style=for-the-badge&logo=chartdotjs&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-optional-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
-**Assortment Dashboard** is a multi-tenant, SaaS-style data-science platform that runs **Market Basket Analysis** on retail transaction data. Store managers upload their CSV/Excel transaction files and instantly explore association rules (Apriori), recommended product bundles, an interactive product-relationship network graph, revenue and seasonal trends, and RFM-based customer segments — all scoped to their own isolated store. A super admin provisions stores, manages manager accounts, and reviews a full audit trail. The backend is a FastAPI service powered by pandas + mlxtend for the ML/analytics layer and ReportLab for PDF report exports.
+**Pairly** is a multi-tenant, SaaS-style data-science platform that runs **Market Basket Analysis** on retail transaction data. Store managers upload their CSV/Excel transaction files and instantly explore association rules (Apriori), recommended product bundles, an interactive product-relationship network graph, revenue and seasonal trends, and RFM-based customer segments — all scoped to their own isolated store. A super admin provisions stores, manages manager accounts, and reviews a full audit trail. The backend is a FastAPI service powered by pandas + mlxtend for the ML/analytics layer and ReportLab for PDF report exports.
 
 <p align="center">
-  <img src="preview.png" alt="Assortment Dashboard preview" width="100%"/>
+  <img src="preview.png" alt="Pairly preview" width="100%"/>
 </p>
 
 ## ✨ Features
