@@ -1,0 +1,50 @@
+# Render Blueprint for the Pairly API + PostgreSQL.
+# Render dashboard -> New -> Blueprint -> pick this repo. Values marked
+# sync: false are asked for once when the Blueprint is created.
+# The frontend is a static site; deploy it on Vercel or Cloudflare Pages
+# (see README, "Deployment").
+
+services:
+  - type: web
+    name: pairly-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pairly-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
+      # The deployed frontend, e.g. https://pairly.vercel.app (no trailing slash)
+      - key: FRONTEND_URL
+        sync: false
+      # Optional regex for preview deploys, e.g. ^https://pairly-.*\.vercel\.app$
+      - key: ALLOWED_ORIGIN_REGEX
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SEED_DEMO
+        value: "true"
+      - key: MAIL_SUPPRESS_SEND
+        value: "true"
+      - key: AI_DAILY_REQUEST_LIMIT
+        value: "50"
+
+databases:
+  - name: pairly-db
+    plan: free
+    databaseName: pairly
+    user: pairly

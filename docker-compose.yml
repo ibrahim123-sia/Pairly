@@ -1,0 +1,65 @@
+# Run all of Pairly locally:  docker compose up --build
+# Then open http://localhost:8080 (API docs: http://localhost:5000/docs).
+#
+# Optional: create a .env file next to this one to turn on AI, e.g.
+#   GROQ_API_KEY=your-key
+# Compose reads it automatically; it is git-ignored.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pairly
+      POSTGRES_PASSWORD: pairly
+      POSTGRES_DB: pairly
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pairly -d pairly"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Local run: development mode allows the example secrets below.
+      APP_ENV: development
+      APP_DEBUG: "false"
+      DATABASE_URL: postgresql://pairly:pairly@db:5432/pairly
+      SECRET_KEY: local-compose-secret
+      JWT_SECRET_KEY: local-compose-jwt-secret
+      SUPER_ADMIN_EMAIL: admin@example.com
+      SUPER_ADMIN_PASSWORD: Admin@12345
+      SEED_DEMO: "true"
+      MAIL_SUPPRESS_SEND: "true"
+      FRONTEND_URL: http://localhost:8080
+      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:5173
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    volumes:
+      - backend_data:/app/backend/data
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_UPSTREAM: http://backend:5000
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
+  backend_data:
