@@ -14,6 +14,7 @@ from app.routers.analytics import router as analytics_router
 from app.services import auth_service, scheduler_service
 
 config = get_config()
+config.validate()
 logger = logging.getLogger("pairly")
 
 APP_NAME = "Pairly"
@@ -61,11 +62,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS configuration matching allowed origins from config
+# CORS: FRONTEND_URL + ALLOWED_ORIGINS (+ optional ALLOWED_ORIGIN_REGEX for preview deploys).
+# Auth uses bearer headers, not cookies; credentials stay on unless "*" is configured.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origin_regex=config.ALLOWED_ORIGIN_REGEX,
+    allow_credentials="*" not in config.ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

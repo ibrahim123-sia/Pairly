@@ -5,6 +5,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _env(name, legacy=None, default=None):
+    """Read an env var, falling back to an older name (e.g. FLASK_ENV)."""
+    value = os.environ.get(name)
+    if value is None and legacy:
+        value = os.environ.get(legacy)
+    return default if value is None else value
+
+
 def _bool(value, default=False):
     if value is None:
         return default
@@ -18,7 +26,35 @@ def _int(value, default):
         return default
 
 
+def _float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _origins(raw, *extra):
+    origins = []
+    for o in [*(raw or "").split(","), *extra]:
+        o = (o or "").strip().rstrip("/")
+        if o and o not in origins:
+            origins.append(o)
+    return origins
+
+
+# Values that must never reach production.
+INSECURE_DEFAULTS = {
+    "dev-secret",
+    "change-me-to-a-long-random-string",
+    "change-me-to-another-long-random-string",
+    "Admin@12345",
+    "ChangeMeOnFirstLogin!",
+}
+
+
 class Config:
+    APP_ENV = _env("APP_ENV", "FLASK_ENV", "development").strip().lower()
+
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", SECRET_KEY)
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=_int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES"), 900))
@@ -26,8 +62,12 @@ class Config:
     JWT_TOKEN_LOCATION = ["headers"]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(BASE_DIR, "data")
+    REPO_ROOT = os.path.dirname(BASE_DIR)
+    DATA_DIR = os.path.abspath(os.environ.get("DATA_DIR") or os.path.join(BASE_DIR, "data"))
     STORES_DIR = os.path.join(DATA_DIR, "stores")
+    DEMO_DATASET_PATH = os.environ.get("DEMO_DATASET_PATH") or os.path.join(
+        REPO_ROOT, "data", "sample", "online_retail_ii_sample.csv"
+    )
 
     _db_url = os.environ.get("DATABASE_URL", "sqlite:///data/app.sqlite")
     if _db_url.startswith("sqlite:///") and not _db_url.startswith("sqlite:////"):
@@ -43,17 +83,18 @@ class Config:
     MAIL_USE_SSL = _bool(os.environ.get("MAIL_USE_SSL"), False)
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME") or None
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD") or None
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "no-reply@example.com")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "Pairly <no-reply@example.com>")
     MAIL_SUPPRESS_SEND = _bool(os.environ.get("MAIL_SUPPRESS_SEND"), False)
 
     SUPER_ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL", "admin@example.com")
     SUPER_ADMIN_PASSWORD = os.environ.get("SUPER_ADMIN_PASSWORD", "Admin@12345")
     SUPER_ADMIN_NAME = os.environ.get("SUPER_ADMIN_NAME", "Super Admin")
 
-    FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-    ALLOWED_ORIGINS = [
-        o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",") if o.strip()
-    ]
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173").strip().rstrip("/")
+    # FRONTEND_URL is always allowed, so a single-frontend deploy only needs FRONTEND_URL.
+    ALLOWED_ORIGINS = _origins(os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173"), FRONTEND_URL)
+    # Optional regex for preview deploys, e.g. ^https://pairly-.*\.vercel\.app$
+    ALLOWED_ORIGIN_REGEX = os.environ.get("ALLOWED_ORIGIN_REGEX") or None
 
     MAX_UPLOAD_MB = _int(os.environ.get("MAX_UPLOAD_MB"), 50)
     MAX_CONTENT_LENGTH = MAX_UPLOAD_MB * 1024 * 1024
@@ -63,11 +104,38 @@ class Config:
     LOGIN_LOCKOUT_THRESHOLD = _int(os.environ.get("LOGIN_LOCKOUT_THRESHOLD"), 5)
     LOGIN_LOCKOUT_MINUTES = _int(os.environ.get("LOGIN_LOCKOUT_MINUTES"), 15)
 
-    DEBUG = _bool(os.environ.get("FLASK_DEBUG"), False)
+    # --- AI layer ---
+    # LLM_PROVIDER: groq | gemini | none. Empty picks the first provider with a key.
+    LLM_PROVIDER = (os.environ.get("LLM_PROVIDER") or "").strip().lower()
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or None
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or None
+    LLM_MODEL = os.environ.get("LLM_MODEL") or None
+    LLM_BASE_URL = os.environ.get("LLM_BASE_URL") or None
+    LLM_TIMEOUT_SECONDS = _float(os.environ.get("LLM_TIMEOUT_SECONDS"), 30.0)
+    AI_ENABLED = _bool(os.environ.get("AI_ENABLED"), True)
+    AI_DAILY_REQUEST_LIMIT = _int(os.environ.get("AI_DAILY_REQUEST_LIMIT"), 50)
+
+    DEBUG = _bool(_env("APP_DEBUG", "FLASK_DEBUG"), True)
+
+    @classmethod
+    def validate(cls):
+        """Refuse to run in production with the example secrets."""
+        if cls.APP_ENV != "production":
+            return
+        bad = [
+            name for name in ("SECRET_KEY", "JWT_SECRET_KEY", "SUPER_ADMIN_PASSWORD")
+            if getattr(cls, name) in INSECURE_DEFAULTS
+        ]
+        if bad:
+            raise RuntimeError(
+                "APP_ENV=production but these settings still use example values: "
+                + ", ".join(bad)
+                + ". Set real values in the environment."
+            )
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
+    pass
 
 
 class ProductionConfig(Config):
@@ -75,7 +143,6 @@ class ProductionConfig(Config):
 
 
 def get_config():
-    env = os.environ.get("FLASK_ENV", "development").lower()
-    if env == "production":
+    if Config.APP_ENV == "production":
         return ProductionConfig
     return DevelopmentConfig
