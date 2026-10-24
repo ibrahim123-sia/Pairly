@@ -70,7 +70,7 @@ class Config:
         REPO_ROOT, "data", "sample", "online_retail_ii_sample.csv"
     )
 
-    _db_url = os.environ.get("DATABASE_URL", "sqlite:///data/app.sqlite")
+    _db_url = os.environ.get("DATABASE_URL") or "sqlite:///data/app.sqlite"
     if _db_url.startswith("sqlite:///") and not _db_url.startswith("sqlite:////"):
         rel = _db_url.replace("sqlite:///", "", 1)
         if not os.path.isabs(rel):
