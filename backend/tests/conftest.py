@@ -31,10 +31,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
-from config import get_config  # noqa: E402
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services.demo_service import DEMO_MANAGER_EMAIL, DEMO_MANAGER_PASSWORD, seed_demo  # noqa: E402
+from config import get_config  # noqa: E402
 
 ADMIN = ("admin@example.com", "Admin@12345")
 DEMO = (DEMO_MANAGER_EMAIL, DEMO_MANAGER_PASSWORD)
@@ -43,6 +43,49 @@ DEMO = (DEMO_MANAGER_EMAIL, DEMO_MANAGER_PASSWORD)
 def pytest_sessionfinish(session, exitstatus):
     engine.dispose()
     shutil.rmtree(_TMP, ignore_errors=True)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _no_network():
+    """Fail loudly if anything tries a real HTTP call (e.g. to an LLM provider).
+    TestClient uses its own in-process transport, so it is unaffected."""
+    import httpx
+
+    def blocked(self, request):
+        raise RuntimeError(f"Network access is disabled in tests: {request.url}")
+
+    original = httpx.HTTPTransport.handle_request
+    httpx.HTTPTransport.handle_request = blocked
+    yield
+    httpx.HTTPTransport.handle_request = original
+
+
+@pytest.fixture
+def use_llm():
+    """Install a FakeGateway as the app's LLM for one test."""
+    from app.services.ai.llm_gateway import get_gateway
+
+    def install(fake):
+        app.dependency_overrides[get_gateway] = lambda: fake
+        return fake
+
+    yield install
+    app.dependency_overrides.pop(get_gateway, None)
+
+
+@pytest.fixture
+def reset_ai(db):
+    """Clean AI state (usage, cache, switches) before and after a test."""
+    from app.models import AIInsightCache, AIUsageLog, PlatformSetting, StoreAISettings
+
+    def wipe():
+        for model in (AIUsageLog, AIInsightCache, StoreAISettings, PlatformSetting):
+            db.query(model).delete()
+        db.commit()
+
+    wipe()
+    yield
+    wipe()
 
 
 @pytest.fixture(scope="session")

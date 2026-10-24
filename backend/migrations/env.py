@@ -3,8 +3,8 @@ from logging.config import fileConfig
 
 from alembic import context
 
-from app.database import Base, engine
 import app.models  # noqa: F401  (registers every model on Base.metadata)
+from app.database import Base, engine
 
 config = context.config
 if config.config_file_name is not None:
