@@ -1,0 +1,37 @@
+# Changelog
+
+All notable changes to Pairly. Dates are YYYY-MM-DD.
+
+## [3.1.0] - 2026-10-24
+
+The product is now called **Pairly** (formerly "Assortment Dashboard").
+
+### Added
+- **AI Insights card** on the dashboard: three to five plain-English insights, each with a suggested action. Every number is checked against the analytics results; on failure Pairly retries once, then falls back to a template summary. Cached per store, dataset and thresholds, with a Regenerate button.
+- **Ask Pairly** assistant: tool calling over seven read-only analytics tools, streamed answers (SSE), and the tools used shown under each answer. Tools are always scoped to the signed-in user's store.
+- One OpenAI-compatible LLM gateway for Groq and Gemini (`LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `LLM_MODEL`), with timeouts and one retry.
+- AI controls: platform switch and per-store block (super admin), store switch (Settings), daily request limit per store, and usage with token counts on the super-admin dashboard.
+- New tables `platform_settings`, `store_ai_settings`, `ai_usage_logs` and `ai_insight_cache` (Alembic migration `3678ef73e299`).
+- Demo seed `scripts/seed_demo.py` with `--file` and `--reload`, and a 4.7 MB sample of Online Retail II in `data/sample/`.
+- Docker images for the API and the web app, `docker-compose.yml` (PostgreSQL + API + web), a Render blueprint, and Vercel / Cloudflare Pages config.
+- GitHub Actions CI: ruff + pytest, migrations and seed on PostgreSQL, ESLint + build, and a docker compose end-to-end check.
+- pytest suite (92 tests) with a mock LLM and no network access, including store-isolation tests for the AI tools.
+- LICENSE, SECURITY.md, CONTRIBUTING.md, `.editorconfig`, `.gitattributes`, issue and PR templates, and `docs/architecture.md`.
+
+### Changed
+- Settings `APP_ENV` / `APP_DEBUG` replace `FLASK_ENV` / `FLASK_DEBUG`; the old names still work as fallbacks.
+- With `APP_ENV=production` the API refuses to start with the example secrets.
+- `FRONTEND_URL` is always an allowed CORS origin; `ALLOWED_ORIGIN_REGEX` was added for preview deploys.
+- Migrations use plain Alembic (the old setup depended on Flask).
+- Analytics pages use the shared API client, so `VITE_API_BASE_URL` works in production. The default API base is `/api`.
+- The recommendations CSV export is about 15 times faster, with identical output.
+- The frontend build is split into vendor chunks (largest chunk 1.0 MB → 494 kB).
+- The repo is restructured: `notebooks/`, `docs/`, `backend/tests/`, `backend/scripts/`, and one root `.gitignore`.
+
+### Removed
+- The two large CSVs (164 MB) are no longer tracked; they now go in the git-ignored `data/raw/` (see `data/README.md`).
+- Unused code: the old Flask blueprints and decorators, `backend/legacy/`, an unused sidebar component, and unused images.
+
+## [3.0.0] - 2026-05
+
+- Backend moved from Flask to FastAPI, with PostgreSQL support.

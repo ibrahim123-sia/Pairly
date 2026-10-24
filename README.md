@@ -1,180 +1,253 @@
 # Pairly
 
-> Find which products sell together, and turn it into bundles and revenue.
+**Find which products sell together, and turn it into bundles and revenue.**
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI-2094F3?style=for-the-badge&logo=gunicorn&logoColor=white)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)
-![pandas](https://img.shields.io/badge/pandas-2.x-150458?style=for-the-badge&logo=pandas&logoColor=white)
-![mlxtend](https://img.shields.io/badge/mlxtend-Apriori-FF6F00?style=for-the-badge&logo=scikitlearn&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Recharts](https://img.shields.io/badge/Recharts-3-22B5BF?style=for-the-badge&logo=chartdotjs&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-optional-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+[![CI](https://github.com/ibrahim123-sia/Pairly/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrahim123-sia/Pairly/actions/workflows/ci.yml)
 
-**Pairly** is a multi-tenant, SaaS-style data-science platform that runs **Market Basket Analysis** on retail transaction data. Store managers upload their CSV/Excel transaction files and instantly explore association rules (Apriori), recommended product bundles, an interactive product-relationship network graph, revenue and seasonal trends, and RFM-based customer segments — all scoped to their own isolated store. A super admin provisions stores, manages manager accounts, and reviews a full audit trail. The backend is a FastAPI service powered by pandas + mlxtend for the ML/analytics layer and ReportLab for PDF report exports.
+Pairly is a web app for shop owners. You upload your sales data (CSV or Excel) and Pairly shows:
 
-<p align="center">
-  <img src="docs/screenshots/preview.png" alt="Pairly preview" width="100%"/>
-</p>
+- which products customers buy together,
+- which bundles to offer,
+- how revenue moves over the year,
+- which customers are loyal and which are slipping away.
 
-## ✨ Features
+An AI layer then explains the results in plain English. It suggests next steps and answers questions such as *"What should I bundle with coffee?"*. The AI never invents numbers: every number comes from Pairly's analytics and is checked before you see it.
 
-- **Market Basket Analysis (Apriori)** — frequent itemset mining and association rules via `mlxtend`, with user-tunable `min_support`, `min_confidence`, and `min_lift` thresholds.
-- **Product bundles** — recommended cross-sell bundles derived from association-rule mining, filterable by the same MBA thresholds.
-- **Product-relationship network graph** — an interactive force-directed graph (`react-force-graph-2d`) built from frequent itemsets showing how products co-occur.
-- **Product recommendations** — "customers who bought X also bought…" suggestions based on co-occurrence, with a configurable minimum co-occurrence count.
-- **Revenue & top-product analysis** — revenue breakdowns by country and year, and top products ranked by revenue or quantity.
-- **Seasonal analysis** — seasonal, monthly, and per-product demand trends over time.
-- **RFM customer segments** — Recency / Frequency / Monetary segmentation of customers.
-- **Advanced insights** — cohort retention analysis, period-over-period comparison, and a bundle discount simulator.
-- **CSV / Excel upload** — drag-and-drop dataset ingestion (`react-dropzone`) with automatic column mapping; multiple datasets per store with activate / delete management.
-- **PDF & CSV exports** — generate downloadable PDF reports (ReportLab) and CSV exports of analytics results.
-- **Multi-tenancy & isolation** — every store's data is stored and every analytics endpoint is scoped to the authenticated user's store.
-- **Role-based access** — `super_admin` (provision stores, manage managers, view audit logs, platform stats) and `store_manager` (own store, data, analytics, settings).
-- **JWT authentication** — access/refresh tokens (`python-jose`) with bcrypt password hashing, login lockout, and password reset flows.
-- **Scheduled re-analysis** — APScheduler-driven background jobs with optional email summaries (SMTP).
-- **Audit logging** — logins, store/account changes, uploads, exports, and job runs are recorded.
-- **Server-side caching** — analytics results are cached per store/dataset/query for fast repeat loads.
-- **Theming** — per-store brand color and light/dark theme.
+Pairly is multi-tenant. A super admin creates stores, and each store manager only ever sees their own store's data.
 
-## 🛠️ Tech Stack
+![Pairly dashboard with AI Insights](docs/screenshots/dashboard.png)
 
-**Backend**
-- FastAPI + Uvicorn (ASGI)
-- SQLAlchemy 2.0 ORM (PostgreSQL or SQLite via `DATABASE_URL`)
-- pandas + numpy + mlxtend (Apriori / association rules), pyarrow (Parquet)
-- python-jose (JWT) + bcrypt (password hashing)
-- ReportLab (PDF), openpyxl (Excel), matplotlib
-- APScheduler (background jobs), Jinja2 (email templates)
+| Ask Pairly | Bundles |
+|---|---|
+| ![Ask Pairly answering a bundle question](docs/screenshots/ask-pairly.png) | ![Product bundles](docs/screenshots/bundles.png) |
+| **Product network** | **Customer segments (RFM)** |
+| ![Product network graph](docs/screenshots/network.png) | ![RFM customer segments](docs/screenshots/customers-rfm.png) |
 
-**Frontend**
-- React 19 + Vite 7
-- Tailwind CSS 3
-- React Router 7
-- Recharts (charts) + react-force-graph-2d (network graph)
-- axios, react-dropzone, react-hot-toast, lucide-react, @headlessui/react, date-fns
+The super-admin dashboard, with AI usage per store: [docs/screenshots/admin.png](docs/screenshots/admin.png)
 
-## 🚀 Getting Started
+## Features
 
-### Prerequisites
+**Analytics**
+- **Association rules (Apriori).** "Customers who buy X also buy Y", with support, confidence and lift you can tune.
+- **Bundles.** Ready-made product pairs to sell together, plus a discount simulator.
+- **Product network.** An interactive graph of which products appear in the same baskets.
+- **Recommendations.** The best cross-sell products for any product.
+- **Revenue and seasonality.** Revenue by country and year, top products, and peak months, weekdays and hours.
+- **Customers.** RFM segments (Champions, At Risk, ...), cohort retention and period-over-period trends.
+- **Exports.** PDF reports and CSV files.
 
-- **Python 3.10+**
-- **Node.js 18+** and npm
-- **PostgreSQL** (optional — the app falls back to a local SQLite file if `DATABASE_URL` is not set)
+**AI features**
+- **AI Insights card.** Three to five short insights on the dashboard, each with a suggested action. Every number in the text is checked against the analytics results. If the check fails, Pairly retries once, then shows a template summary instead. Results are cached per store, dataset and thresholds, and a **Regenerate** button makes a fresh set.
+- **Ask Pairly.** A chat assistant that answers questions by calling read-only tools: association rules, bundles, product recommendations, revenue breakdown, seasonal trend, RFM segments and top products. Answers stream in, show which tools were used, and say plainly when the data can't answer.
+- **Safe by design.**
+  - Tools always run on the signed-in user's store. A store id from the model is ignored.
+  - Only aggregated results go to the LLM, never customer rows, names or emails.
+- **Controls.**
+  - AI on/off switch for each store (in Settings) and for the whole platform (super admin).
+  - A daily request limit per store.
+  - Usage and token counts per store on the super-admin dashboard.
+- **Providers.** Groq or Gemini through one OpenAI-compatible gateway, chosen with env vars. Without a key, Pairly still works and shows template summaries.
 
-### Installation
+**Platform**
+- Stores, store managers and a super admin, with JWT sign-in, password reset and an audit log.
+- Each store's data is isolated. Every endpoint resolves the store on the server.
+- Scheduled re-analysis with email summaries.
+
+## Tech stack
+
+| Part | Tools |
+|---|---|
+| Backend | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL (or SQLite) |
+| Analytics | pandas, NumPy, mlxtend (Apriori), ReportLab (PDF) |
+| AI | Groq or Gemini via an OpenAI-compatible API (httpx), tool calling, Server-Sent Events |
+| Frontend | React 19, Vite 7, Tailwind CSS 3, Recharts, react-force-graph |
+| Quality | pytest (with a mock LLM), Ruff, ESLint, GitHub Actions |
+| Deploy | Docker, docker compose, Render (API + database), Vercel or Cloudflare Pages (web app) |
+
+How the parts connect: [docs/architecture.md](docs/architecture.md).
+
+## Quick start
+
+### Option 1: Docker (everything in one command)
+
+You need Docker Desktop (or Docker Engine with compose).
 
 ```bash
-# clone
-git clone <your-repo-url>
-cd Assortment-Dashboard
-
-# --- backend ---
-cd backend
-python -m venv venv
-venv\Scripts\activate          # Windows;  on *nix: source venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env         # then edit values (see below)
-
-# --- frontend ---
-cd ../frontend
-npm install
+git clone https://github.com/ibrahim123-sia/Pairly.git
+cd Pairly
+docker compose up --build
 ```
 
-### Environment variables
+Open <http://localhost:8080>. This starts PostgreSQL, the API and the web app, and loads the demo data. API docs are at <http://localhost:5000/docs>.
 
-Backend (`backend/.env`) — copy from `backend/.env.example` and edit. Never commit real secrets.
+To turn on the AI features, create a file named `.env` next to `docker-compose.yml` with `GROQ_API_KEY=your-key` (or `GEMINI_API_KEY=...`), then run `docker compose up` again.
 
-| Key | Description |
-|---|---|
-| `FLASK_ENV` | `development` or `production` (selects the config profile) |
-| `FLASK_DEBUG` | Enable auto-reload / debug mode |
-| `SECRET_KEY` | App secret |
-| `JWT_SECRET_KEY` | Secret used to sign JWTs (defaults to `SECRET_KEY`) |
-| `JWT_ACCESS_TOKEN_EXPIRES` | Access token lifetime in seconds (default `900`) |
-| `JWT_REFRESH_TOKEN_EXPIRES` | Refresh token lifetime in seconds (default `604800`) |
-| `DATABASE_URL` | DB connection string — PostgreSQL, or omit to use bundled SQLite |
-| `MAIL_SERVER` / `MAIL_PORT` | SMTP host and port |
-| `MAIL_USE_TLS` / `MAIL_USE_SSL` | SMTP transport security |
-| `MAIL_USERNAME` / `MAIL_PASSWORD` | SMTP credentials |
-| `MAIL_DEFAULT_SENDER` | Default "from" address |
-| `MAIL_SUPPRESS_SEND` | If `true`, emails are not actually sent |
-| `SUPER_ADMIN_EMAIL` | Bootstrap super-admin email (created on startup) |
-| `SUPER_ADMIN_PASSWORD` | Bootstrap super-admin password |
-| `SUPER_ADMIN_NAME` | Bootstrap super-admin display name |
-| `FRONTEND_URL` | Frontend base URL (used in emails) |
-| `ALLOWED_ORIGINS` | Comma-separated CORS origins |
-| `MAX_UPLOAD_MB` | Max upload size in MB (default `50`) |
-| `MAX_ROWS_PER_DATASET` | Row cap per dataset (default `1000000`) |
-| `PASSWORD_RESET_TTL_MINUTES` | Password-reset token lifetime |
-| `LOGIN_LOCKOUT_THRESHOLD` | Failed logins before lockout (default `5`) |
-| `LOGIN_LOCKOUT_MINUTES` | Lockout duration in minutes (default `15`) |
+### Option 2: Run it yourself
 
-Frontend (`frontend/.env`):
+You need Python 3.10+ and Node.js 20.19+ (or 22). The backend uses SQLite unless you set `DATABASE_URL`.
 
-| Key | Description |
-|---|---|
-| `VITE_API_BASE_URL` | API base path (default `/api`, proxied to the backend in dev) |
+**1. Backend** (from the repo root)
 
-### Running locally
+macOS / Linux:
 
 ```bash
-# 1) Backend  →  http://localhost:5000   (API docs at /docs)
 cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+python scripts/seed_demo.py
 python run.py
+```
 
-# 2) Frontend →  http://localhost:5173
+Windows (PowerShell):
+
+```powershell
+cd backend
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+alembic upgrade head
+python scripts/seed_demo.py
+python run.py
+```
+
+If PowerShell blocks `Activate.ps1`, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt with `.venv\Scripts\activate.bat`.
+
+The API runs on <http://localhost:5000> (docs at `/docs`).
+
+**2. Frontend** (in a second terminal, same commands on every OS)
+
+```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-On startup the backend creates the database tables and bootstraps the super-admin account from your `.env`. The Vite dev server proxies `/api/*` to `http://localhost:5000`. Sign in as the super admin, provision a store + manager, then log in as the manager to upload data and run analytics.
+Open <http://localhost:5173>. Vite forwards `/api` to the backend.
 
-Frontend production build:
+**3. AI (optional).** Put `GROQ_API_KEY=...` or `GEMINI_API_KEY=...` in `backend/.env` and restart the backend.
 
-```bash
-cd frontend
-npm run build
-npm run preview
+### Configuration
+
+All settings are environment variables. The full list with comments is in [`backend/.env.example`](backend/.env.example) and [`frontend/.env.example`](frontend/.env.example). The main ones:
+
+| Variable | What it does |
+|---|---|
+| `APP_ENV` | `development` or `production`. Production refuses to start with the example secrets. |
+| `APP_DEBUG` | Auto-reload in development (default `true`). `FLASK_ENV` / `FLASK_DEBUG` still work as fallbacks. |
+| `SECRET_KEY`, `JWT_SECRET_KEY` | Signing secrets; use long random strings |
+| `DATABASE_URL` | PostgreSQL URL; empty means a local SQLite file |
+| `DATA_DIR` | Where uploaded datasets and exports are stored |
+| `FRONTEND_URL` | Web app address, used in emails and always allowed by CORS |
+| `ALLOWED_ORIGINS`, `ALLOWED_ORIGIN_REGEX` | Extra CORS origins, and a regex for preview deploys |
+| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | The super admin created on startup |
+| `LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `LLM_MODEL` | AI provider and model (all optional) |
+| `AI_ENABLED`, `AI_DAILY_REQUEST_LIMIT` | Default platform AI switch and requests per store per day |
+| `MAIL_*` | SMTP settings; `MAIL_SUPPRESS_SEND=true` logs emails instead of sending them |
+| `VITE_API_BASE_URL` (frontend) | Full API URL when the API is on another domain, e.g. `https://pairly-api.onrender.com/api` |
+
+## Demo logins
+
+After `python scripts/seed_demo.py` or `docker compose up`:
+
+| Role | Email | Password |
+|---|---|---|
+| Store manager (Demo Store) | `demo@example.com` | `Demo@12345` |
+| Super admin | `admin@example.com` | `Admin@12345` |
+
+These are local demo accounts. On a public deployment, set your own `SUPER_ADMIN_PASSWORD` (production refuses the example one) and share only the store manager login.
+
+The seed loads `data/sample/online_retail_ii_sample.csv`. To load another file: `python scripts/seed_demo.py --file path/to/file.csv`.
+
+## Project structure
+
 ```
-
-## 📁 Project Structure
-
-```
-Assortment-Dashboard/
+Pairly/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py            # FastAPI app factory + router wiring
-│   │   ├── database.py        # SQLAlchemy engine / session / Base
-│   │   ├── dependencies.py    # auth & store-scope dependencies
-│   │   ├── schemas.py         # Pydantic schemas
-│   │   ├── routers/           # auth, admin, store, analytics, health
-│   │   ├── services/          # mba, analytics, insights, dataset, auth,
-│   │   │                      #   email, audit, export, scheduler, cache
-│   │   ├── models/            # User, Store, Dataset, AuditLog, ...
-│   │   └── utils/             # column_mapping, datetime_features, filters
-│   ├── config.py              # env-driven configuration
-│   ├── run.py                 # uvicorn entrypoint (port 5000)
-│   ├── requirements.txt
+│   │   ├── main.py             # FastAPI app, CORS, routers
+│   │   ├── dependencies.py     # auth and store scoping
+│   │   ├── models/             # SQLAlchemy models (incl. AI tables)
+│   │   ├── routers/            # auth, admin, store, analytics, ai
+│   │   ├── services/           # analytics, datasets, email, exports, ...
+│   │   │   └── ai/             # LLM gateway, number check, tools, insights, assistant
+│   │   └── utils/
+│   ├── migrations/             # Alembic
+│   ├── scripts/                # seed_demo.py, make_sample.py
+│   ├── templates/email/
+│   ├── tests/                  # pytest (mock LLM, no network)
+│   ├── config.py · run.py · alembic.ini · pyproject.toml
+│   ├── requirements.txt · requirements-dev.txt
+│   ├── Dockerfile · docker-entrypoint.sh
 │   └── .env.example
 ├── frontend/
-│   ├── src/
-│   │   ├── pages/             # Dashboard, AssociationRules, ProductBundles,
-│   │   │                      #   NetworkView, RevenueAnalysis, Seasonal…,
-│   │   │                      #   admin/*, store/*, auth/*
-│   │   ├── components/        # NetworkGraph, DataTable, FilterPanel, ...
-│   │   ├── layouts/           # AdminLayout, StoreLayout, AuthLayout
-│   │   ├── context/           # AuthContext, ThemeContext
-│   │   ├── api/               # axios client + per-domain API modules
-│   │   └── App.jsx            # routes
-│   ├── vite.config.js
-│   └── package.json
-└── README.md
+│   ├── src/                    # pages, components, layouts, api, context
+│   ├── public/
+│   ├── nginx/                  # nginx config for the Docker image
+│   ├── Dockerfile · vercel.json · vite.config.js
+│   └── .env.example
+├── data/
+│   ├── sample/                 # 4.7 MB demo sample (tracked)
+│   └── README.md               # source, licence, full dataset download
+├── notebooks/                  # exploratory analysis
+├── docs/
+│   ├── architecture.md
+│   └── screenshots/
+├── .github/                    # CI workflow, issue and PR templates
+├── docker-compose.yml · render.yaml
+└── LICENSE · SECURITY.md · CONTRIBUTING.md · CHANGELOG.md
 ```
 
----
+## Tests
 
-<p align="center">Built by <b>Syed Ibrahim Ali</b> — Full-Stack &amp; AI Engineer</p>
+```bash
+# backend (from backend/)
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+
+# frontend (from frontend/)
+npm run lint
+npm run build
+```
+
+Backend tests use a temporary database and a mock LLM, and block all network access, so they never call a real API. They cover:
+
+- the API and the market basket math,
+- the number check,
+- tool store scoping (store A can never read store B),
+- the template fallback,
+- the chat stream,
+- the AI switches and limits.
+
+GitHub Actions runs everything on each push and pull request, including migrations against PostgreSQL and a full `docker compose` start.
+
+## Deployment
+
+The API and database go on **Render**, and the web app on **Vercel** or **Cloudflare Pages**.
+
+1. **API on Render.** In Render, choose *New → Blueprint* and pick this repo. [`render.yaml`](render.yaml) creates the Docker web service and a PostgreSQL database. It generates `SECRET_KEY` and `JWT_SECRET_KEY` and asks you for:
+   - `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`
+   - `FRONTEND_URL`. Use your web app's URL; you can fill it in after step 2.
+   - `GROQ_API_KEY` (optional)
+   - `ALLOWED_ORIGIN_REGEX` (optional, for preview URLs)
+
+   On each start the container runs migrations and loads the demo data.
+2. **Web app on Vercel.** Import the repo and set **Root Directory** to `frontend`. Add the variable `VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api`, then deploy.
+   **Or Cloudflare Pages:** set the root directory to `frontend`, the build command to `npm run build` and the output to `dist`, with the same variable.
+3. Set `FRONTEND_URL` on Render to the web app's URL (no trailing slash) so CORS allows it.
+
+Notes for the free plans:
+- The Render web service sleeps when idle, so the first request takes about a minute.
+- Uploaded files live on the container disk and are lost on redeploy. The demo data reloads automatically.
+
+## Dataset credit
+
+The demo uses a sample of the **Online Retail II** dataset by Daqing Chen, from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/502/online+retail+ii) ([doi:10.24432/C5CG6D](https://doi.org/10.24432/C5CG6D)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [data/README.md](data/README.md) for how the sample was made and how to use the full dataset.
+
+## License
+
+Proprietary. Copyright 2026 Syed Ibrahim Ali, all rights reserved. See [LICENSE](LICENSE). The dataset keeps its own CC BY 4.0 licence.
