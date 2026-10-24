@@ -1,0 +1,21 @@
+# Tool settings for the Pairly backend. Dependencies stay in requirements*.txt.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+    # mlxtend warns about non-bool basket frames; harmless for our sizes.
+    "ignore:DataFrames with non-bool types:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "config"]
