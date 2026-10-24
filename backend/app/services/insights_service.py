@@ -31,13 +31,25 @@ def compute_recommendations(df, product_name=None, limit=10, min_co_occurrence=3
         return _recommendations_for_product(df, target_name, limit, min_co_occurrence)
 
     top_products = df["Description"].value_counts().head(50).index.tolist()
+    lookups = _product_lookups(df)
     out = {}
     for prod in top_products:
-        out[prod] = _recommendations_for_product(df, prod, limit, min_co_occurrence)["recommendations"]
+        out[prod] = _recommendations_for_product(df, prod, limit, min_co_occurrence, lookups)["recommendations"]
     return {"per_product": out, "total_products": len(out)}
 
 
-def _recommendations_for_product(df, target_name, limit, min_co_occurrence):
+def _product_lookups(df):
+    """Per-product revenue and invoice sets. Built once and shared when many
+    products are scored, since building them is the expensive part."""
+    revenue_by_product = (
+        df.groupby("Description")["TotalAmount"].sum().to_dict()
+        if "TotalAmount" in df.columns else {}
+    )
+    invoices_by_product = df.groupby("Description")["InvoiceNo"].apply(lambda s: set(s.unique())).to_dict()
+    return revenue_by_product, invoices_by_product
+
+
+def _recommendations_for_product(df, target_name, limit, min_co_occurrence, lookups=None):
     target_invoices = set(df[df["Description"] == target_name]["InvoiceNo"].unique())
     target_support_count = len(target_invoices)
     total_invoices = df["InvoiceNo"].nunique()
@@ -48,11 +60,7 @@ def _recommendations_for_product(df, target_name, limit, min_co_occurrence):
     co_counts = co_purchases[co_purchases["Description"] != target_name]["Description"].value_counts()
     co_counts = co_counts[co_counts >= min_co_occurrence].head(limit * 3)
 
-    revenue_by_product = (
-        df.groupby("Description")["TotalAmount"].sum().to_dict()
-        if "TotalAmount" in df.columns else {}
-    )
-    invoices_by_product = df.groupby("Description")["InvoiceNo"].apply(lambda s: set(s.unique())).to_dict()
+    revenue_by_product, invoices_by_product = lookups or _product_lookups(df)
 
     recs = []
     for other_name, co_count in co_counts.items():
