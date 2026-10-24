@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 import pandas as pd
 
-
 _LOCK = threading.Lock()
 _RESULT_CACHE = {}
 _DF_LRU = OrderedDict()

@@ -1,6 +1,7 @@
 """APScheduler bootstrap and re-analysis job runner."""
-from datetime import datetime
 import logging
+from datetime import datetime
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
@@ -24,7 +25,7 @@ def init_scheduler():
     from app.models import ScheduledJob
     db = SessionLocal()
     try:
-        jobs = db.query(ScheduledJob).filter(ScheduledJob.is_enabled == True).all()
+        jobs = db.query(ScheduledJob).filter(ScheduledJob.is_enabled.is_(True)).all()
         for job in jobs:
             register_job(job)
     except Exception as exc:
@@ -67,7 +68,7 @@ def unregister_job(store_id):
 
 def run_reanalysis(store_id):
     from app.database import SessionLocal
-    from app.models import Store, ScheduledJob, User, UserRole
+    from app.models import ScheduledJob, Store, User, UserRole
     from app.services import dataset_service
     from app.services.audit_service import log_event
     from app.services.email_service import send_scheduled_summary_email

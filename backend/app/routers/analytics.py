@@ -1,13 +1,13 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
-from typing import Optional, List
 
 from app.database import get_db
-from app.models import Store, Dataset
 from app.dependencies import get_current_store
-from app.services import dataset_service, cache_service
-from app.services import analytics_service, mba_service, insights_service
+from app.models import Store
+from app.services import analytics_service, cache_service, dataset_service, insights_service, mba_service
 from app.utils.filters import apply_filters, extract_filters_from_args
 
 router = APIRouter()

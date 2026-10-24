@@ -1,10 +1,7 @@
 """High-value retail insights for real stores: cross-sell recommendations,
 RFM customer segmentation, period-over-period KPIs, cohort retention,
 and bundle simulation."""
-from datetime import timedelta
 import pandas as pd
-import numpy as np
-
 
 # ---------- Cross-sell recommendations ----------
 
@@ -69,7 +66,6 @@ def _recommendations_for_product(df, target_name, limit, min_co_occurrence, look
         if b_support == 0:
             continue
         support_ab = co_count / total_invoices
-        support_a = target_support_count / total_invoices
         support_b = b_support / total_invoices
         confidence = co_count / target_support_count
         lift = confidence / support_b if support_b > 0 else 0
@@ -188,7 +184,9 @@ def compute_rfm(df, as_of=None):
         c["monetary"] = round(float(c["monetary"]), 2)
         c["recency_days"] = int(c["recency_days"])
         c["frequency"] = int(c["frequency"])
-        c["R"] = int(c["R"]); c["F"] = int(c["F"]); c["M"] = int(c["M"])
+        c["R"] = int(c["R"])
+        c["F"] = int(c["F"])
+        c["M"] = int(c["M"])
 
     return {
         "as_of": as_of.strftime("%Y-%m-%d"),

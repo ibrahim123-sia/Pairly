@@ -1,5 +1,6 @@
 """Analytics aggregation logic originally written for the single-store prototype."""
 from datetime import datetime
+
 import pandas as pd
 
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]

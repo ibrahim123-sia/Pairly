@@ -1,18 +1,20 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import get_config
-from app.database import engine, Base, SessionLocal
-from app.routers.health import router as health_router
-from app.routers.auth import router as auth_router
+from app.database import Base, SessionLocal, engine
 from app.routers.admin import router as admin_router
-from app.routers.store import router as store_router
+from app.routers.ai import admin_router as ai_admin_router
+from app.routers.ai import router as ai_router
 from app.routers.analytics import router as analytics_router
-from app.routers.ai import router as ai_router, admin_router as ai_admin_router
+from app.routers.auth import router as auth_router
+from app.routers.health import router as health_router
+from app.routers.store import router as store_router
 from app.services import auth_service, scheduler_service
+from config import get_config
 
 config = get_config()
 config.validate()

@@ -2,9 +2,11 @@ import hashlib
 import secrets
 import string
 from datetime import datetime, timedelta
+
 import bcrypt
 from sqlalchemy.orm import Session
-from app.models import User, UserRole, PasswordResetToken
+
+from app.models import PasswordResetToken, User, UserRole
 from config import get_config
 
 config = get_config()
@@ -80,7 +82,7 @@ def _token_hash(token):
 def create_password_reset_token(db: Session, user: User, ip=None):
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
-        PasswordResetToken.used_at == None
+        PasswordResetToken.used_at.is_(None)
     ).delete()
     raw = secrets.token_urlsafe(48)
     ttl = config.PASSWORD_RESET_TTL_MINUTES

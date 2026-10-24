@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
 from fastapi import Request
+from sqlalchemy.orm import Session
+
 from app.models import AuditLog
 
 

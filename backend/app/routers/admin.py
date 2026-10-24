@@ -1,12 +1,13 @@
 import re
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
-from sqlalchemy.orm import Session
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy.orm import Session
+
 from app.database import get_db
-from app.models import User, Store, UserRole, AuditLog, Dataset, ScheduledJob
 from app.dependencies import super_admin_required
+from app.models import AuditLog, Dataset, Store, User, UserRole
 from app.schemas import CreateStoreRequest, DisableStoreRequest, ProfileUpdateRequest
 from app.services import auth_service
 from app.services.audit_service import log_event
@@ -278,7 +279,7 @@ def admin_stats(
     db: Session = Depends(get_db),
 ):
     total_stores = db.query(Store).count()
-    active_stores = db.query(Store).filter(Store.is_active == True).count()
+    active_stores = db.query(Store).filter(Store.is_active.is_(True)).count()
     total_users = db.query(User).count()
     total_managers = db.query(User).filter(User.role == UserRole.STORE_MANAGER).count()
     total_datasets = db.query(Dataset).count()

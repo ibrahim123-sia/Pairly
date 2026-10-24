@@ -1,11 +1,13 @@
 from datetime import datetime
 from typing import Optional
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+
 from app.database import get_db
-from app.models import User, Store, UserRole
+from app.models import Store, User, UserRole
 from config import get_config
 
 config = get_config()

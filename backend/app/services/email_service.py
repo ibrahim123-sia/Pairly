@@ -1,13 +1,14 @@
+import logging
 import os
 import smtplib
-import logging
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
-from config import get_config
 from app.services.audit_service import log_event
+from config import get_config
 
 config = get_config()
 logger = logging.getLogger(__name__)
