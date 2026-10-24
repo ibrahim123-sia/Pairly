@@ -13,6 +13,10 @@ import {
 import { StatCard } from '../components/StatCard';
 import { DataTable } from '../components/DataTable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { AIInsightsCard } from '../components/AIInsightsCard';
+
+// Same thresholds as the rules table below, so the insights describe what the page shows.
+const INSIGHT_PARAMS = { min_support: 0.01, min_confidence: 0.3, min_lift: 1.0 };
 
 export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -167,7 +171,7 @@ export const Dashboard = () => {
           Dashboard Overview
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Real-time insights from your market basket analysis
+          Which products sell together, and what to do about it
         </p>
       </div>
 
@@ -202,6 +206,8 @@ export const Dashboard = () => {
           />
         ))}
       </div>
+
+      <AIInsightsCard params={INSIGHT_PARAMS} />
 
       {/* Additional Metrics */}
       {summary && !loading && (

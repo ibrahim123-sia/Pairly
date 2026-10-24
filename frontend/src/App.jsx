@@ -26,6 +26,7 @@ import { Exports } from './pages/store/Exports';
 import { Recommendations } from './pages/store/Recommendations';
 import { Customers } from './pages/store/Customers';
 import { Trends } from './pages/store/Trends';
+import { AskPairly } from './pages/store/AskPairly';
 
 import { Dashboard } from './pages/Dashboard';
 import { AssociationRules } from './pages/AssociationRules';
@@ -69,6 +70,7 @@ function App() {
               }
             >
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/ask" element={<AskPairly />} />
               <Route path="/association-rules" element={<AssociationRules />} />
               <Route path="/product-bundles" element={<ProductBundles />} />
               <Route path="/recommendations" element={<Recommendations />} />

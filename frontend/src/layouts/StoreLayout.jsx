@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Link as LinkIcon, Package, TrendingUp, Calendar, Database, Settings, Upload, FileDown, Clock, Sparkles, Users, BarChart3 } from 'lucide-react';
+import { Home, Link as LinkIcon, Package, TrendingUp, Calendar, Database, Settings, Upload, FileDown, Clock, Sparkles, Users, BarChart3, MessageSquareText } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const menuItems = [
   { icon: Home, label: 'Dashboard', path: '/dashboard' },
+  { icon: MessageSquareText, label: 'Ask Pairly', path: '/ask' },
   { icon: Sparkles, label: 'Recommendations', path: '/recommendations' },
   { icon: Users, label: 'Customers (RFM)', path: '/customers' },
   { icon: BarChart3, label: 'Trends', path: '/trends' },

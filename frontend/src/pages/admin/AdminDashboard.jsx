@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminStatsApi } from '../../api/adminApi';
 import { Store, Users, Database, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AdminAIPanel } from '../../components/AdminAIPanel';
 
 const Stat = ({ icon: Icon, label, value, color = 'text-primary-600' }) => (
   <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 flex items-center space-x-4">
@@ -47,6 +48,7 @@ export const AdminDashboard = () => {
           <Stat icon={Database} label="Datasets" value={stats?.total_datasets ?? 0} />
         </div>
       )}
+      <AdminAIPanel />
     </div>
   );
 };
