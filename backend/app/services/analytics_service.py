@@ -1,4 +1,4 @@
-"""Analytics aggregation logic ported from legacy/app_legacy.py."""
+"""Analytics aggregation logic originally written for the single-store prototype."""
 from datetime import datetime
 import pandas as pd
 

@@ -1,4 +1,4 @@
-"""Datetime feature extraction ported from legacy/app_legacy.py."""
+"""Datetime feature extraction originally written for the single-store prototype."""
 import pandas as pd
 
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]

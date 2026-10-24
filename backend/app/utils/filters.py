@@ -1,4 +1,4 @@
-"""Filter helpers ported from legacy/app_legacy.py."""
+"""Filter helpers originally written for the single-store prototype."""
 
 
 def apply_filters(df, filters):

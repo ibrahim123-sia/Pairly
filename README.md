@@ -17,7 +17,7 @@
 **Pairly** is a multi-tenant, SaaS-style data-science platform that runs **Market Basket Analysis** on retail transaction data. Store managers upload their CSV/Excel transaction files and instantly explore association rules (Apriori), recommended product bundles, an interactive product-relationship network graph, revenue and seasonal trends, and RFM-based customer segments — all scoped to their own isolated store. A super admin provisions stores, manages manager accounts, and reviews a full audit trail. The backend is a FastAPI service powered by pandas + mlxtend for the ML/analytics layer and ReportLab for PDF report exports.
 
 <p align="center">
-  <img src="preview.png" alt="Pairly preview" width="100%"/>
+  <img src="docs/screenshots/preview.png" alt="Pairly preview" width="100%"/>
 </p>
 
 ## ✨ Features

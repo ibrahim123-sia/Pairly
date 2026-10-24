@@ -1,4 +1,4 @@
-"""Market Basket Analysis logic ported from legacy/app_legacy.py."""
+"""Market Basket Analysis logic originally written for the single-store prototype."""
 import time
 import pandas as pd
 from mlxtend.frequent_patterns import apriori, association_rules

@@ -107,3 +107,6 @@ screenshots/
 
 # local dev database
 *.sqlite
+
+# Full datasets (download yourself, see data/README.md)
+data/raw/

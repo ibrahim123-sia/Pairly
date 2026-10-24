@@ -1,4 +1,4 @@
-"""Column normalization helpers ported from legacy/app_legacy.py."""
+"""Column normalization helpers originally written for the single-store prototype."""
 
 REQUIRED_COLUMNS = ["InvoiceNo", "Description", "Quantity", "UnitPrice"]
 RECOMMENDED_COLUMNS = ["InvoiceDate", "CustomerID", "Country"]
