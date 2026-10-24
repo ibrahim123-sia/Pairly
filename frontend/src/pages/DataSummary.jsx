@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import { DataTable } from '../components/DataTable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Database, BarChart, PieChart, LineChart, CheckCircle, AlertCircle, TrendingUp, RefreshCw, Users } from 'lucide-react';
@@ -18,7 +18,7 @@ export const DataSummary = () => {
   const fetchDataSummary = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/api/summary');
+      const response = await api.get('/analytics/summary');
       if (response.data.success) {
         setSummary(response.data.data);
         
@@ -38,7 +38,7 @@ export const DataSummary = () => {
 
   const fetchTopProducts = async () => {
     try {
-      const response = await axios.get('/api/top_products', {
+      const response = await api.get('/analytics/top_products', {
         params: { limit: 5, sort_by: 'revenue' }
       });
       if (response.data.success) {

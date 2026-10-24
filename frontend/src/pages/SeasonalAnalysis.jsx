@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import { DataTable } from '../components/DataTable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Calendar, Clock, Globe, TrendingUp, BarChart3, TrendingDown, Filter, Package } from 'lucide-react';
@@ -29,7 +29,7 @@ export const SeasonalAnalysis = () => {
 
   const fetchAvailableFilters = async () => {
     try {
-      const response = await axios.get('/api/filters');
+      const response = await api.get('/analytics/filters');
       if (response.data.success) {
         setAvailableFilters({
           products: response.data.filters.products || [],
@@ -46,7 +46,7 @@ export const SeasonalAnalysis = () => {
     setLoading(true);
     try {
       // Use the seasonal product analysis endpoint
-      const response = await axios.get('/api/seasonal_product_analysis', {
+      const response = await api.get('/analytics/seasonal_product_analysis', {
         params: filters
       });
       

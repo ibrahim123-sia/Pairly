@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import { FilterPanel } from '../components/FilterPanel';
 import { NetworkGraph } from '../components/NetworkGraph';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -29,7 +29,7 @@ export const NetworkView = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/frequent_itemsets', {
+      const response = await api.get('/analytics/frequent_itemsets', {
         params: filters,
       });
 

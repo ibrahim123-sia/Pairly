@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import {
   ShoppingCart,
   Package,
@@ -29,7 +29,7 @@ export const Dashboard = () => {
     setLoading(true);
     try {
       // Fetch summary - no filters for dashboard
-      const summaryRes = await axios.get('/api/summary');
+      const summaryRes = await api.get('/analytics/summary');
       if (summaryRes.data.success) {
         setSummary(summaryRes.data.data);
         
@@ -42,7 +42,7 @@ export const Dashboard = () => {
       }
 
       // Fetch top products with default sorting
-      const productsRes = await axios.get('/api/top_products', {
+      const productsRes = await api.get('/analytics/top_products', {
         params: { 
           limit: 5,
           sort_by: 'revenue'
@@ -53,7 +53,7 @@ export const Dashboard = () => {
       }
 
       // Fetch recent rules with easy settings
-      const rulesRes = await axios.get('/api/association_rules', {
+      const rulesRes = await api.get('/analytics/association_rules', {
         params: { 
           limit: 5, 
           simple: true,

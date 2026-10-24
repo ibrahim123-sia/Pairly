@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from '../api/axiosClient';
 import { DataTable } from "../components/DataTable";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { DollarSign, TrendingUp, BarChart3, Target, Globe, Users, Filter } from "lucide-react";
@@ -28,7 +28,7 @@ export const RevenueAnalysis = () => {
 
   const fetchAvailableFilters = async () => {
     try {
-      const response = await axios.get("/api/filters");
+      const response = await api.get("/analytics/filters");
       if (response.data.success) {
         setAvailableFilters({
           countries: response.data.filters.countries || [],
@@ -44,7 +44,7 @@ export const RevenueAnalysis = () => {
     setLoading(true);
     try {
       // Use the new revenue by country endpoint with filters
-      const response = await axios.get("/api/revenue_by_country", {
+      const response = await api.get("/analytics/revenue_by_country", {
         params: filters,
       });
 

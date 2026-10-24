@@ -5,19 +5,9 @@ import './index.css'
 import App from './App.jsx'
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './api/axiosClient'
 
-const ANALYTICS_ENDPOINTS = new Set([
-  'summary', 'association_rules', 'product_bundles_filtered', 'seasonal_data',
-  'seasonal_product_analysis', 'revenue_by_country', 'frequent_itemsets',
-  'top_products', 'filters', 'product_stats', 'health',
-]);
-
-const ANALYTICS_PATH_REGEX = new RegExp(`^/api/(${[...ANALYTICS_ENDPOINTS].join('|')})(/|\\?|$)`);
-
+// Pages use the shared axiosClient; these interceptors only cover the few
+// bare-axios calls (file downloads) so they also get a token and refresh.
 axios.interceptors.request.use((config) => {
-  const url = config.url || '';
-  if (ANALYTICS_PATH_REGEX.test(url)) {
-    config.url = url.replace('/api/', '/api/analytics/');
-  }
   const token = getAccessToken();
   if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;

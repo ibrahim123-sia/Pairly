@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import { DataTable } from '../components/DataTable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { Package, TrendingUp, DollarSign, Tag, RefreshCw, AlertCircle, ShoppingCart, Filter, Globe } from 'lucide-react';
@@ -30,7 +30,7 @@ export const ProductBundles = () => {
 
   const fetchAvailableFilters = async () => {
     try {
-      const response = await axios.get('/api/filters');
+      const response = await api.get('/analytics/filters');
       if (response.data.success) {
         setAvailableFilters({
           countries: response.data.filters.countries || [],
@@ -46,7 +46,7 @@ export const ProductBundles = () => {
     setLoading(true);
     try {
       // Use the filtered bundles endpoint
-      const response = await axios.get('/api/product_bundles_filtered', {
+      const response = await api.get('/analytics/product_bundles_filtered', {
         params: filters,
       });
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 import { DataTable } from '../components/DataTable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { TrendingUp, Target, Link2, AlertCircle, Zap, RefreshCw, Filter, Globe, Calendar, Clock } from 'lucide-react';
@@ -43,7 +43,7 @@ export const AssociationRules = () => {
 
   const fetchAvailableFilters = async () => {
     try {
-      const response = await axios.get('/api/filters');
+      const response = await api.get('/analytics/filters');
       if (response.data.success) {
         setAvailableFilters({
           countries: response.data.filters.countries || [],
@@ -66,7 +66,7 @@ export const AssociationRules = () => {
     try {
       console.log('Fetching with filters:', filters);
       
-      const response = await axios.get('/api/association_rules', {
+      const response = await api.get('/analytics/association_rules', {
         params: {
           ...filters,
           limit: 50,

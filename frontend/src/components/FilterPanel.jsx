@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter, ChevronDown } from 'lucide-react';
-import axios from 'axios';
+import api from '../api/axiosClient';
 
 export const FilterPanel = ({ onFilterChange, loading }) => {
   const [filters, setFilters] = useState({
@@ -32,7 +32,7 @@ export const FilterPanel = ({ onFilterChange, loading }) => {
 
   const fetchFilterOptions = async () => {
     try {
-      const response = await axios.get('/api/filters');
+      const response = await api.get('/analytics/filters');
       if (response.data.success) {
         setFilterOptions(response.data.filters);
       }
