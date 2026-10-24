@@ -23,7 +23,13 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Capitalised names are components, e.g. ({ icon: Icon }) used as <Icon />.
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' }],
     },
+  },
+  {
+    // Build tooling runs in Node.
+    files: ['*.config.js'],
+    languageOptions: { globals: globals.node },
   },
 ])

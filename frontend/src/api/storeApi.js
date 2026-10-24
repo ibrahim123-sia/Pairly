@@ -1,4 +1,4 @@
-import client from './axiosClient';
+import client, { API_BASE_URL } from './axiosClient';
 
 export const getProfileApi = () => client.get('/store/profile');
 export const updateProfileApi = (data) => client.patch('/store/profile', data);
@@ -17,6 +17,5 @@ export const getScheduledJobApi = () => client.get('/store/scheduled-job');
 export const updateScheduledJobApi = (data) => client.put('/store/scheduled-job', data);
 export const exportPdfApi = (sections) => client.post('/store/exports/pdf', { sections });
 export const exportCsvUrl = (type) => {
-  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-  return `${base}/store/exports/csv?type=${type}`;
+  return `${API_BASE_URL}/store/exports/csv?type=${type}`;
 };

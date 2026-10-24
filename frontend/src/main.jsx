@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios'
 import './index.css'
 import App from './App.jsx'
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './api/axiosClient'
+import { API_BASE_URL, getAccessToken, getRefreshToken, setTokens, clearTokens } from './api/axiosClient'
 
 // Pages use the shared axiosClient; these interceptors only cover the few
 // bare-axios calls (file downloads) so they also get a token and refresh.
@@ -35,8 +35,7 @@ axios.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-        const res = await axios.post(`${base}/auth/refresh`, {}, {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
           headers: { Authorization: `Bearer ${getRefreshToken()}` },
         });
         const newAccess = res.data.access_token;

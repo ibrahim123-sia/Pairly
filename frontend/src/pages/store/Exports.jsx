@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { exportPdfApi, exportCsvUrl } from '../../api/storeApi';
-import { getAccessToken } from '../../api/axiosClient';
+import { API_BASE_URL, getAccessToken } from '../../api/axiosClient';
 import { FileDown, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -17,8 +17,7 @@ export const Exports = () => {
       const chosen = Object.keys(sections).filter((k) => sections[k]);
       const res = await exportPdfApi(chosen);
       const url = res.data.download_url;
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-      const fullUrl = url.startsWith('http') ? url : `${base.replace(/\/api$/, '')}${url}`;
+      const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL.replace(/\/api$/, '')}${url}`;
       const blob = await axios.get(fullUrl, { headers: { Authorization: `Bearer ${getAccessToken()}` }, responseType: 'blob' });
       const dl = window.URL.createObjectURL(blob.data);
       const a = document.createElement('a');

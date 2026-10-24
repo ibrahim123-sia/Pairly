@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// '/api' works in dev (Vite proxy) and when the frontend and API share a domain.
+// For a separately hosted API set VITE_API_BASE_URL, e.g. https://api.example.com/api
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+const baseURL = API_BASE_URL;
 
 const axiosClient = axios.create({
   baseURL,
@@ -30,6 +33,16 @@ axiosClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Exchange the refresh token for a new access token. Used by fetch-based
+// calls (the streaming chat) that do not go through the axios interceptors.
+export const refreshAccessToken = async () => {
+  const refresh = getRefreshToken();
+  if (!refresh) throw new Error('No refresh token');
+  const res = await axios.post(`${baseURL}/auth/refresh`, {}, { headers: { Authorization: `Bearer ${refresh}` } });
+  setTokens({ access_token: res.data.access_token });
+  return res.data.access_token;
+};
 
 let isRefreshing = false;
 let pendingRequests = [];
