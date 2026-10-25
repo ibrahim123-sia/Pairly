@@ -4,6 +4,7 @@ import string
 from datetime import datetime, timedelta
 
 import bcrypt
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import PasswordResetToken, User, UserRole
@@ -56,7 +57,12 @@ def ensure_super_admin(db: Session):
         must_change_password=False,
     )
     db.add(admin)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Another process (API start-up vs. demo seed) created it first.
+        db.rollback()
+        return db.query(User).filter(User.email == email).one()
     return admin
 
 

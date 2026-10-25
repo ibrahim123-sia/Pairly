@@ -1,0 +1,20 @@
+{
+  "name": "pairly-cloudflare",
+  "private": true,
+  "description": "Cloudflare deployment for Pairly: Worker + static web app + FastAPI container",
+  "type": "module",
+  "scripts": {
+    "build:web": "npm --prefix ../frontend ci && npm --prefix ../frontend run build",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run build:web && wrangler deploy",
+    "logs": "wrangler tail"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261025.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.152.0"
+  }
+}

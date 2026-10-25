@@ -56,3 +56,23 @@ def test_postgres_urls_pin_the_psycopg2_driver():
     assert normalize_db_url("postgresql://u:p@h/db?sslmode=require") == "postgresql+psycopg2://u:p@h/db?sslmode=require"
     assert normalize_db_url("postgresql+psycopg2://u@h/db") == "postgresql+psycopg2://u@h/db"
     assert normalize_db_url("sqlite:///x.sqlite") == "sqlite:///x.sqlite"
+
+
+def test_super_admin_creation_tolerates_a_race(db, seeded, monkeypatch):
+    """If another process inserts the admin between our check and our insert, we reuse its row."""
+    from app.models import User
+    from app.services import auth_service
+
+    existing = db.query(User).filter(User.email == "admin@example.com").one()
+    real_query = db.query
+    calls = {"n": 0}
+
+    def first_lookup_misses(*args, **kwargs):
+        q = real_query(*args, **kwargs)
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return q.filter(User.id == -1)   # pretend it is not there yet
+        return q
+
+    monkeypatch.setattr(db, "query", first_lookup_misses)
+    assert auth_service.ensure_super_admin(db).id == existing.id

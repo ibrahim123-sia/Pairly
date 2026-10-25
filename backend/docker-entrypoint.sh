@@ -4,10 +4,13 @@ set -e
 
 alembic upgrade head
 
-if [ "${SEED_DEMO:-false}" = "true" ]; then
-  # Safe to repeat. Reloads the sample if the container disk was wiped.
-  python scripts/seed_demo.py
-fi
+# SEED_DEMO: true = load the demo before serving (docker compose, CI);
+# background = serve at once and load it alongside (Cloudflare, where the
+# port must open quickly). Safe to repeat; restores the demo after a disk wipe.
+case "${SEED_DEMO:-false}" in
+  true) python scripts/seed_demo.py ;;
+  background) python scripts/seed_demo.py & ;;
+esac
 
 # One process: the APScheduler jobs run in-process and must not be duplicated.
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-5000}" --proxy-headers --forwarded-allow-ips="*"

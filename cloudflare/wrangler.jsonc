@@ -1,0 +1,52 @@
+// Pairly on Cloudflare: one Worker that serves the web app and forwards
+// /api to the FastAPI container. Deploy with `npm run deploy` (needs Docker)
+// or the "Deploy to Cloudflare" GitHub workflow. See README > Deployment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pairly",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-20",
+  "observability": { "enabled": true },
+
+  // React build (run `npm run build:web` first). Unknown paths serve
+  // index.html; API paths go to the Worker first.
+  "assets": {
+    "directory": "../frontend/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/docs", "/docs/*", "/openapi.json"]
+  },
+
+  // FastAPI + pandas, built from backend/Dockerfile.
+  // basic = 1/4 vCPU, 1 GiB. Use "standard-1" (4 GiB) for datasets with
+  // several hundred thousand rows or more.
+  "containers": [
+    {
+      "class_name": "PairlyApi",
+      "image": "../backend/Dockerfile",
+      "image_build_context": "../backend",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "PAIRLY_API", "class_name": "PairlyApi" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PairlyApi"] }],
+
+  // Hourly check for due scheduled jobs (each check wakes the container
+  // for about 10 minutes; use "0 2 * * *" for once a day).
+  "triggers": { "crons": ["0 * * * *"] },
+
+  // Plain settings. Secrets are set separately (README > Deployment).
+  "vars": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false",
+    "SCHEDULER_MODE": "external",
+    "SEED_DEMO": "background",
+    "MAIL_SUPPRESS_SEND": "true",
+    "AI_DAILY_REQUEST_LIMIT": "50",
+    "R2_BUCKET": "pairly-data",
+    // Your public URL, e.g. https://pairly.<your-subdomain>.workers.dev (used in emails)
+    "FRONTEND_URL": ""
+  }
+}

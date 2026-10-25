@@ -46,6 +46,10 @@ pnpm-debug.log*
 # ---------- Notebooks ----------
 .ipynb_checkpoints/
 
+# ---------- Cloudflare (wrangler) ----------
+.wrangler/
+.dev.vars*
+
 # ---------- Playwright ----------
 test-results/
 playwright-report/
