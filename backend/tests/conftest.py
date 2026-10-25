@@ -13,7 +13,9 @@ _TMP = tempfile.mkdtemp(prefix="pairly-tests-")
 os.environ.update({
     "APP_ENV": "development",
     "APP_DEBUG": "false",
-    "DATABASE_URL": "sqlite:///" + os.path.join(_TMP, "test.sqlite").replace("\\", "/"),
+    # PAIRLY_TEST_DATABASE_URL runs the suite on an empty PostgreSQL database instead (CI does this).
+    "DATABASE_URL": os.environ.get("PAIRLY_TEST_DATABASE_URL")
+    or "sqlite:///" + os.path.join(_TMP, "test.sqlite").replace("\\", "/"),
     "DATA_DIR": os.path.join(_TMP, "data"),
     "MAIL_SUPPRESS_SEND": "true",
     "SUPER_ADMIN_EMAIL": "admin@example.com",
