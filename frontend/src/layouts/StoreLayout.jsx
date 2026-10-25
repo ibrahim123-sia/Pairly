@@ -46,7 +46,7 @@ export const StoreLayout = () => {
         title={store?.name || 'My Store'}
         subtitle="Pairly · Market basket analytics"
       />
-      <div className="flex">
+      <div className="flex min-h-[calc(100vh-4rem)]">
         <aside
           className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 mt-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:mt-0`}
         >

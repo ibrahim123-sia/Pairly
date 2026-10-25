@@ -99,7 +99,7 @@ export const ProductBundles = () => {
             {value}
           </div>
           <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Main products: {row.main_products?.slice(0, 2).map(p => p.substring(0, 20)).join(' + ')}
+            Main products: {(row.main_products || row.products)?.slice(0, 2).map(p => p.substring(0, 20)).join(' + ')}
           </div>
         </div>
       ),
@@ -345,7 +345,7 @@ export const ProductBundles = () => {
         ) : (
           <>
             <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Found {bundles.length} product bundles from {metadata?.top_products_analyzed || 0} top products. 
+              Found {bundles.length} product bundles from {metadata?.top_products_analyzed ?? metadata?.filter_stats?.products_in_analysis ?? 0} top products. 
               Lift &gt; 1 indicates products are purchased together more often than expected.
             </div>
             <DataTable
@@ -356,10 +356,10 @@ export const ProductBundles = () => {
             />
             {metadata && (
               <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-                Analyzed {metadata.top_products_analyzed} top products • 
-                Minimum {metadata.min_transactions} transactions per bundle • 
-                Filtered from {metadata.filtered_records} records • 
-                {metadata.filters_applied?.country && ` Country: ${metadata.filters_applied.country}`}
+                Analyzed {metadata.filter_stats?.products_in_analysis ?? 0} top products •{' '}
+                {(metadata.filter_stats?.transactions_in_analysis ?? 0).toLocaleString()} baskets •{' '}
+                Computed in {metadata.processing_time ?? 0}s
+                {metadata.filters_applied?.country && ` • Country: ${metadata.filters_applied.country}`}
                 {metadata.filters_applied?.product && ` • Product: ${metadata.filters_applied.product}`}
               </div>
             )}

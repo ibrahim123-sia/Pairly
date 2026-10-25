@@ -1,32 +1,37 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { ZoomIn, ZoomOut, RefreshCw, AlertCircle } from 'lucide-react';
 
 export const NetworkGraph = ({ data, loading, height = 500 }) => {
   const fgRef = useRef();
+  const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height });
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
 
+  // Size the canvas to its card (fgRef holds the graph API, not a DOM node).
   useEffect(() => {
-    const updateDimensions = () => {
-      const container = fgRef.current?.parentElement;
-      if (container) {
-        setDimensions({
-          width: container.clientWidth,
-          height,
-        });
-      }
-    };
+    const el = containerRef.current;
+    if (!el) return undefined;
+    const update = () => setDimensions({ width: el.clientWidth, height });
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [height, loading, data]);
 
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, [height]);
+  // Spread the nodes out; the default forces pack a dense graph into a knot.
+  useEffect(() => {
+    const fg = fgRef.current;
+    if (!fg) return;
+    fg.d3Force('charge')?.strength(-320);
+    fg.d3Force('link')?.distance(110);
+    fg.d3ReheatSimulation?.();
+  }, [data]);
 
-  // Transform data for ForceGraph
-  const transformedData = {
-    nodes: data.nodes.map(node => ({
+  // Transform data for ForceGraph (memoised so hovering does not restart the layout)
+  const transformedData = useMemo(() => ({
+    nodes: (data?.nodes || []).map(node => ({
       id: node.id,
       name: node.name,
       group: node.group || 1,
@@ -34,14 +39,14 @@ export const NetworkGraph = ({ data, loading, height = 500 }) => {
       revenue: node.revenue || 0,
       transactions: node.transactions || 0,
     })),
-    links: data.links.map(link => ({
+    links: (data?.links || []).map(link => ({
       source: link.source,
       target: link.target,
       value: link.value || 0.1,
       strength: link.strength || 1,
       transactions: link.transactions || 0,
     }))
-  };
+  }), [data]);
 
   if (loading) {
     return (
@@ -131,7 +136,7 @@ export const NetworkGraph = ({ data, loading, height = 500 }) => {
   };
 
   return (
-    <div className="relative bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div ref={containerRef} className="relative bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="absolute top-4 right-4 z-10 flex space-x-2">
         <button
           onClick={handleZoomIn}
@@ -167,7 +172,7 @@ export const NetworkGraph = ({ data, loading, height = 500 }) => {
           Transactions: ${node.transactions || 0}
         `}
         nodeColor={getNodeColor}
-        nodeRelSize={getNodeSize}
+        nodeRelSize={6}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.name;
           const fontSize = 12 / globalScale;
@@ -190,7 +195,8 @@ export const NetworkGraph = ({ data, loading, height = 500 }) => {
         linkColor={getLinkColor}
         linkWidth={(link) => (highlightLinks.has(link) ? 3 : link.value * 2)}
         onNodeHover={handleNodeHover}
-        cooldownTime={1000}
+        cooldownTime={2500}
+        onEngineStop={() => fgRef.current?.zoomToFit(400, 90)}
         d3VelocityDecay={0.3}
         warmupTicks={20}
         linkDirectionalArrowLength={3}
