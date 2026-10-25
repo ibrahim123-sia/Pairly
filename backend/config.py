@@ -93,7 +93,7 @@ class Config:
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173").strip().rstrip("/")
     # FRONTEND_URL is always allowed, so a single-frontend deploy only needs FRONTEND_URL.
     ALLOWED_ORIGINS = _origins(os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173"), FRONTEND_URL)
-    # Optional regex for preview deploys, e.g. ^https://pairly-.*\.vercel\.app$
+    # Optional regex for preview deploys, e.g. ^https://.*\.pairly\.pages\.dev$
     ALLOWED_ORIGIN_REGEX = os.environ.get("ALLOWED_ORIGIN_REGEX") or None
 
     MAX_UPLOAD_MB = _int(os.environ.get("MAX_UPLOAD_MB"), 50)

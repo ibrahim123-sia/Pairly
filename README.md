@@ -60,7 +60,7 @@ Pairly is multi-tenant. A super admin creates stores, and each store manager onl
 | AI | Groq or Gemini via an OpenAI-compatible API (httpx), tool calling, Server-Sent Events |
 | Frontend | React 19, Vite 7, Tailwind CSS 3, Recharts, react-force-graph |
 | Quality | pytest (with a mock LLM), Ruff, ESLint, GitHub Actions |
-| Deploy | Docker, docker compose, Render (API + database), Vercel or Cloudflare Pages (web app) |
+| Deploy | Cloudflare Workers + Containers + R2 + Cron Triggers, Neon PostgreSQL, Docker, docker compose |
 
 How the parts connect: [docs/architecture.md](docs/architecture.md).
 
@@ -145,7 +145,9 @@ All settings are environment variables. The full list with comments is in [`back
 | `LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `LLM_MODEL` | AI provider and model (all optional) |
 | `AI_ENABLED`, `AI_DAILY_REQUEST_LIMIT` | Default platform AI switch and requests per store per day |
 | `MAIL_*` | SMTP settings; `MAIL_SUPPRESS_SEND=true` logs emails instead of sending them |
-| `VITE_API_BASE_URL` (frontend) | Full API URL when the API is on another domain, e.g. `https://pairly-api.onrender.com/api` |
+| `STORAGE_BACKEND`, `R2_*` | `r2` keeps uploaded datasets in a Cloudflare R2 bucket as well as on disk (default `local`) |
+| `SCHEDULER_MODE`, `CRON_SECRET` | `external` runs scheduled jobs from a Cron Trigger instead of in-process (default `internal`) |
+| `VITE_API_BASE_URL` (frontend) | Full API URL when the API is on another domain, e.g. `https://api.example.com/api` (not needed on Cloudflare, where both share one address) |
 
 ## Demo logins
 
@@ -186,13 +188,14 @@ Pairly/
 │   ├── src/                    # pages, components, layouts, api, context
 │   ├── public/
 │   ├── nginx/                  # nginx config for the Docker image
-│   ├── Dockerfile · vercel.json · vite.config.js
+│   ├── Dockerfile · vite.config.js
 │   └── .env.example
 ├── docs/
 │   ├── architecture.md
 │   └── screenshots/
 ├── .github/                    # CI workflow, issue and PR templates
-├── docker-compose.yml · render.yaml
+├── cloudflare/                 # Worker + wrangler.jsonc: web app, API container, cron
+├── docker-compose.yml
 └── LICENSE · SECURITY.md · CONTRIBUTING.md · CHANGELOG.md
 ```
 
@@ -219,26 +222,68 @@ Backend tests use a temporary database and a mock LLM, and block all network acc
 - the chat stream,
 - the AI switches and limits.
 
-GitHub Actions runs everything on each push and pull request, including migrations against PostgreSQL and a full `docker compose` start.
+GitHub Actions runs everything on each push and pull request: the tests on SQLite and on PostgreSQL, the migrations, a full `docker compose` start, and a dry run of the Cloudflare Worker.
 
 ## Deployment
 
-The API and database go on **Render**, and the web app on **Vercel** or **Cloudflare Pages**.
+Pairly runs entirely on **Cloudflare**, with the database on **Neon**:
 
-1. **API on Render.** In Render, choose *New → Blueprint* and pick this repo. [`render.yaml`](render.yaml) creates the Docker web service and a PostgreSQL database. It generates `SECRET_KEY` and `JWT_SECRET_KEY` and asks you for:
-   - `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`
-   - `FRONTEND_URL`. Use your web app's URL; you can fill it in after step 2.
-   - `GROQ_API_KEY` (optional)
-   - `ALLOWED_ORIGIN_REGEX` (optional, for preview URLs)
+```
+Browser ──> Cloudflare Worker "pairly" ──┬── React web app (static files)
+                                         └── /api ──> Container: FastAPI ──┬── Neon PostgreSQL
+                                                                           ├── R2 bucket (uploaded datasets)
+                                                                           └── Groq, Gemini as fallback
+Cron Trigger (hourly) ──> /api/internal/scheduled-jobs/run
+```
 
-   On each start the container runs migrations and loads the demo data.
-2. **Web app on Vercel.** Import the repo and set **Root Directory** to `frontend`. Add the variable `VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api`, then deploy.
-   **Or Cloudflare Pages:** set the root directory to `frontend`, the build command to `npm run build` and the output to `dist`, with the same variable.
-3. Set `FRONTEND_URL` on Render to the web app's URL (no trailing slash) so CORS allows it.
+- One Worker serves the web app and forwards `/api` to the API container. Everything is on one address, so no CORS setup is needed.
+- The container's disk is wiped when it sleeps. Uploaded datasets are therefore also kept in R2 and come back automatically.
+- The config is in [`cloudflare/`](cloudflare/). The deploy runs from GitHub Actions, so you don't need Docker on your PC.
 
-Notes for the free plans:
-- The Render web service sleeps when idle, so the first request takes about a minute.
-- Uploaded files live on the container disk and are lost on redeploy. The demo data reloads automatically.
+### What you need
+
+| Account | Plan | Used for |
+|---|---|---|
+| [Cloudflare](https://dash.cloudflare.com) | Workers Paid, $5/month (Containers require it) | Worker, Container, R2, Cron |
+| [Neon](https://neon.tech) | Free | PostgreSQL |
+| [Groq](https://console.groq.com) / [Google AI Studio](https://aistudio.google.com) | Free tier | AI (optional; Gemini is the fallback) |
+
+### 1. Create the services (once)
+
+1. **Neon:** create a project, open *Connect*, choose the **pooled** connection string and copy it (it ends with `sslmode=require`). This is `DATABASE_URL`.
+2. **R2:** in Cloudflare, go to *R2 → Create bucket* and name it `pairly-data`. Then open *Manage API tokens → Create API token* with **Object Read & Write** on that bucket, and copy the *Access Key ID* and *Secret Access Key*.
+3. **Cloudflare API token:** go to *My Profile → API Tokens → Create Token*, use the **Edit Cloudflare Workers** template and limit it to your account. Copy the token and your **Account ID** (shown on the dashboard). If a deploy fails while pushing the container image, add the *Containers: Edit* permission to the token.
+
+### 2. Add the secrets to GitHub
+
+In the repo, open *Settings → Secrets and variables → Actions → New repository secret*:
+
+| Secret | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | The token from step 1.3 |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account id |
+| `DATABASE_URL` | The Neon connection string |
+| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | From the R2 API token |
+| `SECRET_KEY`, `JWT_SECRET_KEY`, `CRON_SECRET` | Three different random strings: `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your admin login (production refuses the demo password) |
+| `GROQ_API_KEY`, `GEMINI_API_KEY` | Optional, for the AI features |
+| `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | Optional, to send real emails; also set `MAIL_SUPPRESS_SEND` to `"false"` in `cloudflare/wrangler.jsonc` |
+
+### 3. Deploy
+
+Go to *Actions → Deploy to Cloudflare → Run workflow*. The workflow builds the web app, builds and pushes the API image, deploys the Worker, and uploads the secrets. The app then runs at `https://pairly.<your-subdomain>.workers.dev`, with the demo store loaded.
+
+Afterwards:
+- Put that address in `FRONTEND_URL` in [`cloudflare/wrangler.jsonc`](cloudflare/wrangler.jsonc); it's used in emails. Then run the workflow again.
+- A custom domain is optional: *Workers → pairly → Settings → Domains & Routes*.
+- Deploying from your own PC also works (needs Docker Desktop): `cd cloudflare`, `npm install`, `npx wrangler login`, `npm run deploy`, then `npx wrangler secret put NAME` for each secret.
+
+### Good to know
+
+- **Cold starts.** The API container sleeps after 10 minutes without traffic. The first request after that takes up to about a minute while it starts and runs migrations.
+- **Costs.** The $5 plan includes 25 GiB-hours of container memory each month. The API uses the `basic` size (1 GiB) and only bills while awake. The hourly job check keeps it awake about 10 minutes per hour, which comes to roughly $1 a month extra. To check once a day instead, change `triggers.crons` in `wrangler.jsonc` to `"0 2 * * *"`. Neon and R2 stay within their free tiers for a demo.
+- **Big datasets** (hundreds of thousands of rows): change `instance_type` to `"standard-1"` (4 GiB) in `wrangler.jsonc`.
+- **Logs:** run `cd cloudflare && npx wrangler tail`, or open *Workers → pairly → Logs*.
 
 ## Demo data
 

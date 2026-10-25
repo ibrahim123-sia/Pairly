@@ -15,6 +15,7 @@ You should get a reply within a few days.
 - **Passwords** are hashed with bcrypt. Logins lock after repeated failures.
 - **Tokens** are short-lived JWT access tokens plus refresh tokens.
 - **Production checks.** With `APP_ENV=production` the API refuses to start if `SECRET_KEY`, `JWT_SECRET_KEY` or `SUPER_ADMIN_PASSWORD` still use example values.
+- **Internal endpoint.** `POST /api/internal/scheduled-jobs/run` (used by the Cloudflare Cron Trigger) requires the `X-Cron-Secret` header to match `CRON_SECRET`, compared in constant time. Without `CRON_SECRET` it returns 404.
 - **Secrets** live only in environment variables. `.env` files are git-ignored; only `.env.example` files with placeholders are committed.
 
 ## Supported versions

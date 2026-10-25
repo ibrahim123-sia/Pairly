@@ -108,11 +108,21 @@ Schema changes go through Alembic (`backend/migrations`). The app also runs `cre
 
 ## Deployment shape
 
-```
-Vercel / Cloudflare Pages  --HTTPS-->  Render web service (Docker)  -->  Render PostgreSQL
-  static React build                     FastAPI + uvicorn                 users, stores, AI logs
-  VITE_API_BASE_URL=<api>/api            CORS: FRONTEND_URL                 ...
-                                         --> Groq / Gemini API
+```mermaid
+flowchart LR
+    B[Browser] --> W["Cloudflare Worker 'pairly'<br/>(cloudflare/src/index.ts)"]
+    W -- "static files" --> A["React build<br/>(Workers static assets)"]
+    W -- "/api/*" --> C["Container: FastAPI<br/>(backend/Dockerfile)"]
+    Cron["Cron Trigger (hourly)"] --> W
+    C --> N[("Neon PostgreSQL")]
+    C --> R[("R2 bucket<br/>dataset Parquet files")]
+    C --> L["Groq, Gemini as fallback"]
 ```
 
-Locally, `docker compose up` runs the same pieces: nginx serves the React build and forwards `/api` to the API container, next to PostgreSQL.
+- **One address.** The Worker serves the React build itself and forwards only `/api/*`, `/docs` and `/openapi.json` to the container, so the browser never makes a cross-origin call.
+- **One container instance** (a named Durable Object) runs the API. It sleeps after 10 idle minutes. On a cold start it runs `alembic upgrade head`, starts serving, and restores the demo store in the background.
+- **The disk is temporary.** Container disks are wiped on sleep, so with `STORAGE_BACKEND=r2` every uploaded dataset is also written to R2 and downloaded again on first use (`app/services/storage.py`).
+- **Scheduled jobs.** With `SCHEDULER_MODE=external` the in-process scheduler is off. The Cron Trigger calls `POST /api/internal/scheduled-jobs/run` with the `X-Cron-Secret` header, and the API runs the store jobs that are due.
+- **Settings.** Plain settings live in `cloudflare/wrangler.jsonc` (`vars`). Secrets are set with `wrangler secret`, or by the "Deploy to Cloudflare" GitHub workflow. The Worker passes both to the container as environment variables.
+
+Locally, `docker compose up` runs the same API image next to PostgreSQL, with nginx serving the React build and forwarding `/api`. There, files stay on a Docker volume and APScheduler runs in-process.
