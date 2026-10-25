@@ -63,11 +63,10 @@ class Config:
     JWT_TOKEN_LOCATION = ["headers"]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    REPO_ROOT = os.path.dirname(BASE_DIR)
     DATA_DIR = os.path.abspath(os.environ.get("DATA_DIR") or os.path.join(BASE_DIR, "data"))
     STORES_DIR = os.path.join(DATA_DIR, "stores")
     DEMO_DATASET_PATH = os.environ.get("DEMO_DATASET_PATH") or os.path.join(
-        REPO_ROOT, "data", "sample", "online_retail_ii_sample.csv"
+        BASE_DIR, "app", "demo", "sample_transactions.csv"
     )
 
     _db_url = os.environ.get("DATABASE_URL") or "sqlite:///data/app.sqlite"

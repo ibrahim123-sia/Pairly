@@ -22,8 +22,7 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
     depends_on:
       db:
         condition: service_healthy

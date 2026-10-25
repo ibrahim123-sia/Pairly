@@ -10,7 +10,7 @@ services:
     runtime: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: .
+    dockerContext: ./backend
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:

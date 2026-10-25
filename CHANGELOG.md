@@ -12,10 +12,11 @@ The product is now called **Pairly** (formerly "Assortment Dashboard").
 - One OpenAI-compatible LLM gateway for Groq and Gemini (`LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `LLM_MODEL`), with timeouts and one retry.
 - AI controls: platform switch and per-store block (super admin), store switch (Settings), daily request limit per store, and usage with token counts on the super-admin dashboard.
 - New tables `platform_settings`, `store_ai_settings`, `ai_usage_logs` and `ai_insight_cache` (Alembic migration `3678ef73e299`).
-- Demo seed `scripts/seed_demo.py` with `--file` and `--reload`, and a 4.7 MB sample of Online Retail II in `data/sample/`.
+- Demo seed `scripts/seed_demo.py` with `--file` and `--reload`, loading a 4.6 MB sample of Online Retail II from `backend/app/demo/sample_transactions.csv`.
+- A 315-row test fixture with planted product pairs (`backend/tests/fixtures/`) and tests that check exact rules, bundles and recommendations from it.
 - Docker images for the API and the web app, `docker-compose.yml` (PostgreSQL + API + web), a Render blueprint, and Vercel / Cloudflare Pages config.
 - GitHub Actions CI: ruff + pytest, migrations and seed on PostgreSQL, ESLint + build, and a docker compose end-to-end check.
-- pytest suite (92 tests) with a mock LLM and no network access, including store-isolation tests for the AI tools.
+- pytest suite (99 tests) with a mock LLM and no network access, including store-isolation tests for the AI tools.
 - LICENSE, SECURITY.md, CONTRIBUTING.md, `.editorconfig`, `.gitattributes`, issue and PR templates, and `docs/architecture.md`.
 
 ### Changed
@@ -26,10 +27,10 @@ The product is now called **Pairly** (formerly "Assortment Dashboard").
 - Analytics pages use the shared API client, so `VITE_API_BASE_URL` works in production. The default API base is `/api`.
 - The recommendations CSV export is about 15 times faster, with identical output.
 - The frontend build is split into vendor chunks (largest chunk 1.0 MB → 494 kB).
-- The repo is restructured: `notebooks/`, `docs/`, `backend/tests/`, `backend/scripts/`, and one root `.gitignore`.
+- The repo is restructured: `docs/`, `backend/tests/`, `backend/scripts/`, and one root `.gitignore` that ignores `*.csv`, `*.xlsx` and `*.ipynb` apart from the two sample files.
 
 ### Removed
-- The two large CSVs (164 MB) are no longer tracked; they now go in the git-ignored `data/raw/` (see `data/README.md`).
+- The root `data/` folder and its two large CSVs (164 MB) are no longer tracked, and neither is `notebook/Phase-1.ipynb` (kept locally). Git history is unchanged.
 - Unused code: the old Flask blueprints and decorators, `backend/legacy/`, an unused sidebar component, and unused images.
 
 ## [3.0.0] - 2026-05

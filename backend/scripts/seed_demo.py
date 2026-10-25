@@ -1,8 +1,8 @@
 """Create the Pairly demo store and demo manager, and load the sample dataset.
 
 Run from backend/:
-    python scripts/seed_demo.py                       # uses data/sample/online_retail_ii_sample.csv
-    python scripts/seed_demo.py --file ../data/raw/Online_Retail_II_Cleaned.csv
+    python scripts/seed_demo.py                       # loads app/demo/sample_transactions.csv
+    python scripts/seed_demo.py --file path/to/your_sales.csv
     python scripts/seed_demo.py --reload              # load the file again even if data exists
 
 Safe to run more than once.

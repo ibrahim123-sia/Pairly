@@ -35,9 +35,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# ---------- Data ----------
-# Full datasets are downloaded by hand (see data/README.md); only data/sample/ is tracked.
-data/raw/
+# ---------- Data and notebooks ----------
+# Pairly works on each store's own uploads. Only the two small samples are tracked.
+*.csv
+*.xlsx
+*.ipynb
+!backend/app/demo/sample_transactions.csv
+!backend/tests/fixtures/transactions_small.csv
 
 # ---------- Notebooks ----------
 .ipynb_checkpoints/

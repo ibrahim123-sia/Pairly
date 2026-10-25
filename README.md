@@ -160,7 +160,7 @@ After `python scripts/seed_demo.py` or `docker compose up`:
 
 These are local demo accounts. On a public deployment, set your own `SUPER_ADMIN_PASSWORD` (production refuses the example one) and share only the store manager login.
 
-The seed loads `data/sample/online_retail_ii_sample.csv`. To load another file: `python scripts/seed_demo.py --file path/to/file.csv`.
+The seed loads `backend/app/demo/sample_transactions.csv` (see [Demo data](#demo-data)). To load another file: `python scripts/seed_demo.py --file path/to/file.csv`.
 
 ## Project structure
 
@@ -169,6 +169,7 @@ Pairly/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py             # FastAPI app, CORS, routers
+│   │   ├── demo/               # sample_transactions.csv (4.6 MB demo data)
 │   │   ├── dependencies.py     # auth and store scoping
 │   │   ├── models/             # SQLAlchemy models (incl. AI tables)
 │   │   ├── routers/            # auth, admin, store, analytics, ai
@@ -178,10 +179,10 @@ Pairly/
 │   ├── migrations/             # Alembic
 │   ├── scripts/                # seed_demo.py, make_sample.py
 │   ├── templates/email/
-│   ├── tests/                  # pytest (mock LLM, no network)
+│   ├── tests/                  # pytest (mock LLM, no network) + fixtures/
 │   ├── config.py · run.py · alembic.ini · pyproject.toml
 │   ├── requirements.txt · requirements-dev.txt
-│   ├── Dockerfile · docker-entrypoint.sh
+│   ├── Dockerfile · .dockerignore · docker-entrypoint.sh
 │   └── .env.example
 ├── frontend/
 │   ├── src/                    # pages, components, layouts, api, context
@@ -189,10 +190,6 @@ Pairly/
 │   ├── nginx/                  # nginx config for the Docker image
 │   ├── Dockerfile · vercel.json · vite.config.js
 │   └── .env.example
-├── data/
-│   ├── sample/                 # 4.7 MB demo sample (tracked)
-│   └── README.md               # source, licence, full dataset download
-├── notebooks/                  # exploratory analysis
 ├── docs/
 │   ├── architecture.md
 │   └── screenshots/
@@ -217,6 +214,7 @@ npm run build
 Backend tests use a temporary database and a mock LLM, and block all network access, so they never call a real API. They cover:
 
 - the API and the market basket math,
+- exact rules and bundles from a small fixture with planted product pairs,
 - the number check,
 - tool store scoping (store A can never read store B),
 - the template fallback,
@@ -244,9 +242,18 @@ Notes for the free plans:
 - The Render web service sleeps when idle, so the first request takes about a minute.
 - Uploaded files live on the container disk and are lost on redeploy. The demo data reloads automatically.
 
-## Dataset credit
+## Demo data
 
-The demo uses a sample of the **Online Retail II** dataset by Daqing Chen, from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/502/online+retail+ii) ([doi:10.24432/C5CG6D](https://doi.org/10.24432/C5CG6D)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [data/README.md](data/README.md) for how the sample was made and how to use the full dataset.
+Pairly works on each store's own sales data, uploaded as CSV or Excel on the **My Datasets** page. The repo has two small files for the demo and the tests; no other data is tracked.
+
+| File | What it is |
+|---|---|
+| `backend/app/demo/sample_transactions.csv` | About 57,000 rows (2,668 whole invoices, 4.6 MB), loaded into the demo store by `scripts/seed_demo.py` |
+| `backend/tests/fixtures/transactions_small.csv` | 315 hand-designed rows with planted product pairs, so tests can check exact rules and bundles (`tests/fixtures/make_fixture.py`) |
+
+**Attribution.** The demo sample comes from the **Online Retail II** dataset by Daqing Chen, UCI Machine Learning Repository, <https://archive.ics.uci.edu/dataset/502/online+retail+ii>, [doi:10.24432/C5CG6D](https://doi.org/10.24432/C5CG6D), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). It covers transactions from a UK online gift shop between December 2009 and December 2011.
+
+**Changes made.** Cancelled invoices and rows with no price, quantity or customer ID were removed. Then 8% of invoices were picked at random (seed 42), keeping every line of each chosen invoice, and columns Pairly computes itself were dropped. To rebuild it from a full cleaned export: `python scripts/make_sample.py --source path/to/Online_Retail_II_Cleaned.csv`.
 
 ## License
 

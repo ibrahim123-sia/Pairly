@@ -1,5 +1,5 @@
-# Pairly API. Build from the repo root so the demo sample data is included:
-#   docker build -f backend/Dockerfile -t pairly-api .
+# Pairly API.
+#   docker build -t pairly-api ./backend
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -9,11 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app/backend
 
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY backend/ .
-COPY data/sample/ /app/data/sample/
+COPY . .
 
 RUN useradd --create-home --uid 10001 pairly \
     && mkdir -p /app/backend/data \
