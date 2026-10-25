@@ -3,13 +3,15 @@
 Speaks the OpenAI-compatible chat completions API, which both Groq and Gemini
 offer. The provider is picked from env vars (see config.py):
 
-    LLM_PROVIDER   groq | gemini | none  (empty: first provider with a key)
+    LLM_PROVIDER   groq | gemini | none  (empty: Groq first)
     GROQ_API_KEY / GEMINI_API_KEY
-    LLM_MODEL      optional model override
-    LLM_BASE_URL   optional base URL override (any OpenAI-compatible server)
+    LLM_MODEL      optional model override for the primary provider
+    LLM_BASE_URL   optional base URL override for the primary provider
 
 Every call has a timeout and is retried once on timeouts, connection errors,
 429 and 5xx. A stream is only retried if nothing has been received yet.
+When both keys are set, the other provider is an automatic fallback
+(FallbackGateway): if Groq still fails after its retry, Gemini answers.
 """
 import json
 import logging
@@ -223,28 +225,103 @@ def _error(message, retryable):
     return err
 
 
-def resolve_provider(config=None):
-    """Return (provider, api_key) or (None, reason)."""
+def resolve_providers(config=None):
+    """Providers to use, in order, as [(name, api_key)], plus a reason when empty.
+
+    The primary is LLM_PROVIDER if set, otherwise Groq. Every other provider
+    that has a key becomes a fallback, so with both keys set Groq answers and
+    Gemini takes over when Groq fails.
+    """
     config = config or get_config()
     wanted = config.LLM_PROVIDER
     if wanted in ("none", "off", "disabled"):
-        return None, "disabled_by_env"
-    candidates = [wanted] if wanted else list(PROVIDERS)
-    for name in candidates:
-        spec = PROVIDERS.get(name)
-        if spec is None:
-            return None, f"unknown_provider:{name}"
-        key = getattr(config, spec["key_attr"], None)
-        if key:
-            return name, key
-    return None, "not_configured"
+        return [], "disabled_by_env"
+    if wanted and wanted not in PROVIDERS:
+        return [], f"unknown_provider:{wanted}"
+    order = [wanted] + [n for n in PROVIDERS if n != wanted] if wanted else list(PROVIDERS)
+    chosen = [(n, getattr(config, PROVIDERS[n]["key_attr"], None)) for n in order]
+    chosen = [(n, k) for n, k in chosen if k]
+    return chosen, (None if chosen else "not_configured")
+
+
+class FallbackGateway:
+    """Tries each gateway in order; moves to the next one when a call fails.
+
+    A stream only falls back if the failing provider sent nothing yet, so a
+    user never gets half an answer from one model and half from another.
+    `provider` and `model` name whichever gateway answered last (for usage logs).
+    """
+
+    def __init__(self, gateways):
+        if not gateways:
+            raise ValueError("FallbackGateway needs at least one gateway")
+        self.gateways = list(gateways)
+        self._active = self.gateways[0]
+
+    @property
+    def provider(self):
+        return self._active.provider
+
+    @property
+    def model(self):
+        return self._active.model
+
+    @property
+    def providers(self):
+        return [g.provider for g in self.gateways]
+
+    def complete(self, messages, tools=None, json_mode=False, temperature=0.2) -> LLMResponse:
+        last = None
+        for gw in self.gateways:
+            try:
+                result = gw.complete(messages, tools=tools, json_mode=json_mode, temperature=temperature)
+            except LLMError as exc:
+                last = exc
+                logger.warning("LLM provider %s failed (%s); trying the next one", gw.provider, exc)
+                continue
+            self._active = gw
+            return result
+        raise last
+
+    def stream(self, messages, tools=None, temperature=0.2) -> Iterator[StreamEvent]:
+        last = None
+        for gw in self.gateways:
+            sent = False
+            try:
+                for event in gw.stream(messages, tools=tools, temperature=temperature):
+                    if not sent:
+                        self._active = gw
+                        sent = True
+                    yield event
+                return
+            except LLMError as exc:
+                if sent:
+                    raise
+                last = exc
+                logger.warning("LLM provider %s failed (%s); trying the next one", gw.provider, exc)
+        raise last
 
 
 _gateway = None
 _gateway_checked = False
 
 
-def get_gateway() -> Optional[LLMGateway]:
+def build_gateway(config=None):
+    """A FallbackGateway over every configured provider, or (None, reason)."""
+    config = config or get_config()
+    chosen, reason = resolve_providers(config)
+    if not chosen:
+        return None, reason
+    gateways = []
+    for i, (name, key) in enumerate(chosen):
+        primary = i == 0
+        # LLM_MODEL / LLM_BASE_URL are provider-specific, so they only apply to the primary.
+        gateways.append(LLMGateway(name, key, config.LLM_MODEL if primary else None,
+                                   config.LLM_BASE_URL if primary else None, config.LLM_TIMEOUT_SECONDS))
+    return FallbackGateway(gateways), None
+
+
+def get_gateway():
     """The process-wide gateway, or None when no provider is configured.
 
     Also used as a FastAPI dependency, so tests swap in a mock with
@@ -252,12 +329,10 @@ def get_gateway() -> Optional[LLMGateway]:
     """
     global _gateway, _gateway_checked
     if not _gateway_checked:
-        config = get_config()
-        provider, key = resolve_provider(config)
-        if provider:
-            _gateway = LLMGateway(provider, key, config.LLM_MODEL, config.LLM_BASE_URL, config.LLM_TIMEOUT_SECONDS)
-            logger.info("Pairly AI: using %s (%s)", provider, _gateway.model)
+        _gateway, reason = build_gateway()
+        if _gateway:
+            logger.info("Pairly AI: providers in order %s (primary model %s)", _gateway.providers, _gateway.model)
         else:
-            logger.info("Pairly AI: no LLM provider (%s); using template summaries only", key)
+            logger.info("Pairly AI: no LLM provider (%s); using template summaries only", reason)
         _gateway_checked = True
     return _gateway

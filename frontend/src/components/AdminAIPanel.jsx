@@ -62,7 +62,7 @@ export const AdminAIPanel = () => {
         <div>
           <h2 id="admin-ai-title" className="text-lg font-semibold text-gray-900 dark:text-white">AI usage</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Insights and Ask Pairly requests per store. {data.configured ? `Provider: ${data.provider}.` : 'Set GROQ_API_KEY or GEMINI_API_KEY on the server to enable AI.'}
+            Insights and Ask Pairly requests per store. {data.configured ? `Provider: ${(data.providers || [data.provider]).join(' → then ')}.` : 'Set GROQ_API_KEY or GEMINI_API_KEY on the server to enable AI.'}
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">

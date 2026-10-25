@@ -160,6 +160,7 @@ def _admin_payload(db, gateway, days):
         "configured": gateway is not None,
         "provider": getattr(gateway, "provider", None),
         "model": getattr(gateway, "model", None),
+        "providers": getattr(gateway, "providers", [getattr(gateway, "provider", None)] if gateway else []),
         **usage.usage_report(db, days),
     }
 
