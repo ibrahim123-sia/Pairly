@@ -96,14 +96,43 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+  cloudflare:
+    name: Cloudflare Worker (typecheck + dry run)
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            cloudflare/package-lock.json
+      - name: Build the web app (static assets)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Typecheck and bundle the Worker
+        working-directory: cloudflare
+        run: |
+          npm ci
+          npm run typecheck
+          npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker"
+
   docker:
     name: Docker compose (end to end)
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     steps:
       - uses: actions/checkout@v5
-      - name: Build and start
-        run: docker compose up --build --detach --wait --wait-timeout 300
+      - name: Build images
+        run: |
+          set -o pipefail
+          docker compose build 2>&1 | tee "$RUNNER_TEMP/build.log"
+      - name: Start
+        run: docker compose up --detach --wait --wait-timeout 300
       - name: Check the web app and API through nginx
         run: |
           curl -fsS http://localhost:8080/ | grep -q "<title>Pairly</title>"
@@ -115,7 +144,16 @@ jobs:
           curl -fsS -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/ai/insights | grep -q insights
       - name: Logs on failure
         if: failure()
-        run: docker compose logs --no-color
+        run: |
+          docker compose ps -a || true
+          docker compose logs --no-color || true
+          # Also publish the tail as an annotation (readable without signing in to GitHub).
+          {
+            tail -n 25 "$RUNNER_TEMP/build.log" 2>/dev/null || true
+            docker compose ps -a --format '{{.Service}}: {{.State}} {{.Status}}' 2>/dev/null || true
+            docker compose logs --no-color --tail 25 backend frontend 2>/dev/null || true
+          } > "$RUNNER_TEMP/tail.log"
+          python3 -c 'import sys; d = open(sys.argv[1]).read(); print("::error title=docker compose logs::" + d.replace("%", "%25").replace(chr(13), "%0D").replace(chr(10), "%0A"))' "$RUNNER_TEMP/tail.log"
       - name: Stop
         if: always()
         run: docker compose down --volumes
