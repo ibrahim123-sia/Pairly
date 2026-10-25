@@ -17,13 +17,11 @@ Pairly is multi-tenant. A super admin creates stores, and each store manager onl
 
 ![Pairly dashboard with AI Insights](docs/screenshots/dashboard.png)
 
-| Ask Pairly | Bundles |
+| Bundles | Product network |
 |---|---|
-| ![Ask Pairly answering a bundle question](docs/screenshots/ask-pairly.png) | ![Product bundles](docs/screenshots/bundles.png) |
-| **Product network** | **Customer segments (RFM)** |
-| ![Product network graph](docs/screenshots/network.png) | ![RFM customer segments](docs/screenshots/customers-rfm.png) |
-
-The super-admin dashboard, with AI usage per store: [docs/screenshots/admin.png](docs/screenshots/admin.png)
+| ![Product bundles](docs/screenshots/bundles.png) | ![Product network graph](docs/screenshots/network.png) |
+| **Customer segments (RFM)** | **Super admin: AI usage per store** |
+| ![RFM customer segments](docs/screenshots/customers-rfm.png) | ![Super-admin dashboard](docs/screenshots/admin.png) |
 
 ## Features
 
