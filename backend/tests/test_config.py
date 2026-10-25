@@ -48,3 +48,11 @@ def test_cors_allows_the_frontend(client):
     r = client.options("/api/health", headers={"Origin": "https://evil.example.com",
                                                "Access-Control-Request-Method": "GET"})
     assert "access-control-allow-origin" not in r.headers
+
+
+def test_postgres_urls_pin_the_psycopg2_driver():
+    from app.database import normalize_db_url
+    assert normalize_db_url("postgres://u:p@h/db") == "postgresql+psycopg2://u:p@h/db"
+    assert normalize_db_url("postgresql://u:p@h/db?sslmode=require") == "postgresql+psycopg2://u:p@h/db?sslmode=require"
+    assert normalize_db_url("postgresql+psycopg2://u@h/db") == "postgresql+psycopg2://u@h/db"
+    assert normalize_db_url("sqlite:///x.sqlite") == "sqlite:///x.sqlite"

@@ -5,10 +5,22 @@ from config import get_config
 
 config = get_config()
 
-# If the database URL starts with postgres://, replace with postgresql:// for SQLAlchemy compatibility
-db_url = config.SQLALCHEMY_DATABASE_URI
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+
+def normalize_db_url(url):
+    """Pin the PostgreSQL driver to psycopg2 (the one in requirements.txt).
+
+    Hosts hand out postgres:// or postgresql:// URLs. SQLAlchemy 2.1 maps a
+    bare postgresql:// to psycopg (v3) instead of psycopg2, so the driver is
+    always named explicitly.
+    """
+    for prefix in ("postgres://", "postgresql://"):
+        if url and url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
+
+
+db_url = normalize_db_url(config.SQLALCHEMY_DATABASE_URI)
 
 # Enable connection pooling and pre-ping for PostgreSQL robustness
 connect_args = {}
