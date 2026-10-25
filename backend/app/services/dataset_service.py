@@ -1,4 +1,5 @@
 """Dataset upload pipeline: validate, clean, persist as parquet, activate."""
+import logging
 import os
 import uuid
 
@@ -8,11 +9,13 @@ from sqlalchemy.orm import Session
 from app.models import Dataset, DatasetStatus, Store
 from app.services import cache_service
 from app.services.audit_service import log_event
+from app.services.storage import dataset_key, get_storage
 from app.utils.column_mapping import map_column_names, validate_required_columns
 from app.utils.datetime_features import extract_datetime_features
 from config import get_config
 
 config = get_config()
+logger = logging.getLogger("pairly.datasets")
 ALLOWED_EXT = {".csv", ".xlsx", ".xls"}
 
 
@@ -110,6 +113,7 @@ def process_upload(db: Session, store: Store, file_storage, uploader):
 
         parquet_path = os.path.join(store_dir, f"{dataset_id}.parquet")
         df.to_parquet(parquet_path, compression="snappy", index=False)
+        get_storage().upload(parquet_path, dataset_key(store.id, dataset_id))
 
         date_start = None
         date_end = None
@@ -178,6 +182,7 @@ def delete_dataset(db: Session, store: Store, dataset: Dataset, actor=None):
     if store.active_dataset_id == dataset.id:
         return False, "Cannot delete the active dataset; activate another first."
     parquet_path = dataset.parquet_path
+    get_storage().delete(dataset_key(store.id, dataset.id))
     db.delete(dataset)
     db.commit()
     if parquet_path and os.path.exists(parquet_path):
@@ -196,5 +201,27 @@ def get_active_dataframe(db: Session, store: Store):
     dataset = db.get(Dataset, store.active_dataset_id)
     if not dataset or dataset.status != DatasetStatus.READY:
         return None, dataset
-    df = cache_service.load_dataframe(store.id, dataset.id, dataset.parquet_path)
+    path = ensure_local_file(db, dataset)
+    if path is None:
+        return None, dataset
+    df = cache_service.load_dataframe(store.id, dataset.id, path)
     return df, dataset
+
+
+def ensure_local_file(db: Session, dataset: Dataset):
+    """Path of the dataset's Parquet file on local disk, fetched from storage
+    (R2) if this machine does not have it, or None if it cannot be found."""
+    if dataset.parquet_path and os.path.exists(dataset.parquet_path):
+        return dataset.parquet_path
+    local = os.path.join(_store_dir(dataset.store_id), f"{dataset.id}.parquet")
+    try:
+        found = os.path.exists(local) or get_storage().download(dataset_key(dataset.store_id, dataset.id), local)
+    except Exception as exc:
+        logger.warning("Could not fetch dataset %s from storage: %s", dataset.id, exc)
+        return None
+    if not found:
+        return None
+    if dataset.parquet_path != local:
+        dataset.parquet_path = local
+        db.commit()
+    return local

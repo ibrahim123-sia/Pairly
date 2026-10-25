@@ -1,6 +1,12 @@
-"""APScheduler bootstrap and re-analysis job runner."""
+"""Scheduled re-analysis.
+
+SCHEDULER_MODE=internal (default): APScheduler runs inside the API process.
+SCHEDULER_MODE=external: nothing runs in-process; an outside timer (the
+Cloudflare Cron Trigger) calls POST /api/internal/scheduled-jobs/run, which
+runs the jobs that are due (see due_store_ids).
+"""
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -17,6 +23,10 @@ def init_scheduler():
     global _scheduler
     if _scheduler is not None:
         return _scheduler
+    from config import get_config
+    if get_config().SCHEDULER_MODE == "external":
+        logger.info("Scheduler: external mode, jobs run when /api/internal/scheduled-jobs/run is called")
+        return None
     _scheduler = BackgroundScheduler(daemon=True, timezone="UTC")
     _scheduler.start()
 
@@ -112,3 +122,29 @@ def run_reanalysis(store_id):
             db.commit()
     finally:
         db.close()
+
+
+def due_store_ids(db, now=None):
+    """Stores whose enabled job has a cron fire time between its last run and now.
+
+    A job that never ran counts from when it was created, so a new job waits
+    for its first scheduled time instead of running at once.
+    """
+    from app.models import ScheduledJob
+
+    now = now or datetime.now(timezone.utc)
+    due = []
+    for job in db.query(ScheduledJob).filter(ScheduledJob.is_enabled.is_(True)).all():
+        try:
+            trigger = CronTrigger.from_crontab(job.cron_expression, timezone="UTC")
+        except ValueError:
+            logger.warning("Invalid cron for store %s: %s", job.store_id, job.cron_expression)
+            continue
+        since = (job.last_run_at or job.created_at).replace(tzinfo=timezone.utc) + timedelta(seconds=1)
+        next_fire = trigger.get_next_fire_time(None, since)
+        if next_fire and next_fire <= now:
+            due.append(job.store_id)
+        upcoming = trigger.get_next_fire_time(None, now)
+        job.next_run_at = upcoming.astimezone(timezone.utc).replace(tzinfo=None) if upcoming else None
+    db.commit()
+    return due

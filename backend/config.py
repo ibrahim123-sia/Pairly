@@ -115,6 +115,20 @@ class Config:
     AI_ENABLED = _bool(os.environ.get("AI_ENABLED"), True)
     AI_DAILY_REQUEST_LIMIT = _int(os.environ.get("AI_DAILY_REQUEST_LIMIT"), 50)
 
+    # --- File storage (see app/services/storage.py) ---
+    R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID") or None
+    R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID") or None
+    R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY") or None
+    R2_BUCKET = os.environ.get("R2_BUCKET") or None
+    STORAGE_BACKEND = (os.environ.get("STORAGE_BACKEND") or ("r2" if R2_BUCKET else "local")).strip().lower()
+
+    # --- Scheduled jobs ---
+    # internal: APScheduler inside the API process (development, docker compose).
+    # external: an outside timer (Cloudflare Cron Trigger) calls
+    #           POST /api/internal/scheduled-jobs/run with header X-Cron-Secret.
+    SCHEDULER_MODE = (os.environ.get("SCHEDULER_MODE") or "internal").strip().lower()
+    CRON_SECRET = os.environ.get("CRON_SECRET") or None
+
     DEBUG = _bool(_env("APP_DEBUG", "FLASK_DEBUG"), True)
 
     @classmethod

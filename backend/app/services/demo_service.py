@@ -30,10 +30,11 @@ class _LocalUpload:
 
 
 def _has_usable_dataset(db: Session, store: Store) -> bool:
+    """True if the active dataset's file is on disk or can be restored from storage (R2)."""
     if not store.active_dataset_id:
         return False
     ds = db.get(Dataset, store.active_dataset_id)
-    return bool(ds and ds.parquet_path and os.path.exists(ds.parquet_path))
+    return bool(ds and dataset_service.ensure_local_file(db, ds))
 
 
 def seed_demo(db: Session, dataset_path: str, reload: bool = False, check: bool = True) -> dict:
