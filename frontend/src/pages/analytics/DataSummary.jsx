@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axiosClient';
-import { DataTable } from '../components/DataTable';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import api from '../../api/axiosClient';
+import { DataTable } from '../../components/DataTable';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { Database, BarChart, PieChart, LineChart, CheckCircle, AlertCircle, TrendingUp, RefreshCw, Users } from 'lucide-react';
 
 export const DataSummary = () => {

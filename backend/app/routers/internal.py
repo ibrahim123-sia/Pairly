@@ -10,9 +10,9 @@ import threading
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.database import get_db
 from app.services import scheduler_service
-from config import get_config
 
 router = APIRouter()
 

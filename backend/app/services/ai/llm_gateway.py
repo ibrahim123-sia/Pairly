@@ -22,7 +22,7 @@ from typing import Iterator, Optional
 
 import httpx
 
-from config import get_config
+from app.config import get_config
 
 logger = logging.getLogger("pairly.ai")
 

@@ -2,7 +2,7 @@ import os
 
 import uvicorn
 
-from config import get_config
+from app.config import get_config
 
 config = get_config()
 

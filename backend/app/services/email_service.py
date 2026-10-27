@@ -7,14 +7,14 @@ from email.mime.text import MIMEText
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.services.audit_service import log_event
-from config import get_config
 
 config = get_config()
 logger = logging.getLogger(__name__)
 
 # Set up native Jinja2 environment pointing to absolute templates path
-template_dir = os.path.join(config.BASE_DIR, "templates")
+template_dir = os.path.join(config.BASE_DIR, "app", "templates")
 jinja_env = Environment(loader=FileSystemLoader(template_dir))
 
 

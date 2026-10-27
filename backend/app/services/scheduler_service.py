@@ -23,7 +23,7 @@ def init_scheduler():
     global _scheduler
     if _scheduler is not None:
         return _scheduler
-    from config import get_config
+    from app.config import get_config
     if get_config().SCHEDULER_MODE == "external":
         logger.info("Scheduler: external mode, jobs run when /api/internal/scheduled-jobs/run is called")
         return None

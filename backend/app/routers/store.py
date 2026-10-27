@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Res
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.database import get_db
 from app.dependencies import get_current_store, get_current_user
 from app.models import Dataset, ScheduledJob, Store, User
 from app.schemas import PDFExportRequest, ProfileUpdateRequest, ScheduledJobUpsertRequest
 from app.services import dataset_service, export_service, scheduler_service
 from app.services.audit_service import log_event
-from config import get_config
 
 config = get_config()
 router = APIRouter()

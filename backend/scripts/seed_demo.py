@@ -14,9 +14,9 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from app.config import get_config  # noqa: E402
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.services.demo_service import DEMO_MANAGER_PASSWORD, seed_demo  # noqa: E402
-from config import get_config  # noqa: E402
 
 
 def main():

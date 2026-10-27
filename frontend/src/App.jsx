@@ -28,13 +28,13 @@ import { Customers } from './pages/store/Customers';
 import { Trends } from './pages/store/Trends';
 import { AskPairly } from './pages/store/AskPairly';
 
-import { Dashboard } from './pages/Dashboard';
-import { AssociationRules } from './pages/AssociationRules';
-import { ProductBundles } from './pages/ProductBundles';
-import { RevenueAnalysis } from './pages/RevenueAnalysis';
-import { SeasonalAnalysis } from './pages/SeasonalAnalysis';
-import { NetworkView } from './pages/NetworkView';
-import { DataSummary } from './pages/DataSummary';
+import { Dashboard } from './pages/analytics/Dashboard';
+import { AssociationRules } from './pages/analytics/AssociationRules';
+import { ProductBundles } from './pages/analytics/ProductBundles';
+import { RevenueAnalysis } from './pages/analytics/RevenueAnalysis';
+import { SeasonalAnalysis } from './pages/analytics/SeasonalAnalysis';
+import { NetworkView } from './pages/analytics/NetworkView';
+import { DataSummary } from './pages/analytics/DataSummary';
 
 function App() {
   return (

@@ -62,7 +62,8 @@ class Config:
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(seconds=_int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES"), 604800))
     JWT_TOKEN_LOCATION = ["headers"]
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # backend/ (this file lives in backend/app/)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     DATA_DIR = os.path.abspath(os.environ.get("DATA_DIR") or os.path.join(BASE_DIR, "data"))
     STORES_DIR = os.path.join(DATA_DIR, "stores")
     DEMO_DATASET_PATH = os.environ.get("DEMO_DATASET_PATH") or os.path.join(

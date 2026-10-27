@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import api from '../api/axiosClient';
-import { DataTable } from "../components/DataTable";
-import { LoadingSpinner } from "../components/LoadingSpinner";
+import api from '../../api/axiosClient';
+import { DataTable } from "../../components/DataTable";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { DollarSign, TrendingUp, BarChart3, Target, Globe, Users, Filter } from "lucide-react";
 
 export const RevenueAnalysis = () => {

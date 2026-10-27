@@ -1,7 +1,7 @@
 """Config: APP_* names with FLASK_* fallback, CORS origins, production guard."""
 import pytest
 
-import config as cfg
+from app import config as cfg
 
 
 def test_app_env_falls_back_to_flask_env(monkeypatch):
@@ -41,7 +41,7 @@ def test_development_allows_example_secrets(monkeypatch):
 
 
 def test_cors_allows_the_frontend(client):
-    from config import get_config
+    from app.config import get_config
     origin = get_config().FRONTEND_URL
     r = client.options("/api/health", headers={"Origin": origin, "Access-Control-Request-Method": "GET"})
     assert r.headers.get("access-control-allow-origin") == origin

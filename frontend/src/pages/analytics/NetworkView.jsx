@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axiosClient';
-import { FilterPanel } from '../components/FilterPanel';
-import { NetworkGraph } from '../components/NetworkGraph';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import api from '../../api/axiosClient';
+import { FilterPanel } from '../../components/FilterPanel';
+import { NetworkGraph } from '../../components/NetworkGraph';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { Network, GitBranch, Target, BarChart3, AlertCircle } from 'lucide-react';
 
 export const NetworkView = () => {

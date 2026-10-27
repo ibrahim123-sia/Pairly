@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axiosClient';
-import { DataTable } from '../components/DataTable';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import api from '../../api/axiosClient';
+import { DataTable } from '../../components/DataTable';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { Calendar, Clock, Globe, TrendingUp, BarChart3, TrendingDown, Filter, Package } from 'lucide-react';
 
 export const SeasonalAnalysis = () => {

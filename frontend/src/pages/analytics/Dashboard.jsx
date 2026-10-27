@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../api/axiosClient';
+import api from '../../api/axiosClient';
 import {
   ShoppingCart,
   Package,
@@ -10,10 +10,10 @@ import {
   Database,
   AlertCircle,
 } from 'lucide-react';
-import { StatCard } from '../components/StatCard';
-import { DataTable } from '../components/DataTable';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { AIInsightsCard } from '../components/AIInsightsCard';
+import { StatCard } from '../../components/StatCard';
+import { DataTable } from '../../components/DataTable';
+import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { AIInsightsCard } from '../../components/AIInsightsCard';
 
 // Same thresholds as the rules table below, so the insights describe what the page shows.
 const INSIGHT_PARAMS = { min_support: 0.01, min_confidence: 0.3, min_lift: 1.0 };

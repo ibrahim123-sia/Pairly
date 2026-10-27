@@ -14,8 +14,8 @@ from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.models import AIUsageLog, PlatformSetting, Store, StoreAISettings
-from config import get_config
 
 PLATFORM_AI_KEY = "ai_enabled"
 

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-import config as cfg
+from app import config as cfg
 from app.models import Dataset, ScheduledJob, Store, User, UserRole
 from app.routers import internal
 from app.services import auth_service, cache_service, dataset_service, scheduler_service

@@ -7,8 +7,8 @@ import bcrypt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.models import PasswordResetToken, User, UserRole
-from config import get_config
 
 config = get_config()
 

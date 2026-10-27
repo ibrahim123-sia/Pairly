@@ -6,9 +6,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
+from app.config import get_config
 from app.database import get_db
 from app.models import Store, User, UserRole
-from config import get_config
 
 config = get_config()
 security = HTTPBearer(auto_error=False)

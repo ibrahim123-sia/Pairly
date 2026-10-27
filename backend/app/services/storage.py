@@ -14,7 +14,7 @@ Containers, whose disk is wiped whenever the container sleeps.
 import logging
 import os
 
-from config import get_config
+from app.config import get_config
 
 logger = logging.getLogger("pairly.storage")
 
