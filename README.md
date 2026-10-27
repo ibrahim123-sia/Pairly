@@ -15,13 +15,7 @@ An AI layer then explains the results in plain English. It suggests next steps a
 
 Pairly is multi-tenant. A super admin creates stores, and each store manager only ever sees their own store's data.
 
-![Pairly dashboard with AI Insights](.github/assets/screenshots/dashboard.png)
-
-| Bundles | Product network |
-|---|---|
-| ![Product bundles](.github/assets/screenshots/bundles.png) | ![Product network graph](.github/assets/screenshots/network.png) |
-| **Customer segments (RFM)** | **Super admin: AI usage per store** |
-| ![RFM customer segments](.github/assets/screenshots/customers-rfm.png) | ![Super-admin dashboard](.github/assets/screenshots/admin.png) |
+![Pairly dashboard with AI Insights](.github/assets/preview.png)
 
 ## Features
 
@@ -198,7 +192,7 @@ Pairly/
 │   ├── Dockerfile · vite.config.js
 │   └── .env.example
 ├── cloudflare/                 # Worker + wrangler.jsonc: web app, API container, cron
-├── .github/                    # CI and deploy workflows, README screenshots
+├── .github/                    # CI and deploy workflows, README preview image
 ├── docker-compose.yml
 └── README.md · CHANGELOG.md · SECURITY.md · LICENSE
 ```

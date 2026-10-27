@@ -32,7 +32,7 @@ The product is now called **Pairly** (formerly "Assortment Dashboard").
 - The frontend build is split into vendor chunks (largest chunk 1.0 MB → 494 kB).
 - The repo is restructured: `backend/tests/`, `backend/scripts/`, and one root `.gitignore` that ignores `*.csv`, `*.xlsx` and `*.ipynb` apart from the two sample files.
 - All backend code lives in the `app` package: `config.py` is now `app/config.py` and the email templates are in `app/templates/`. The frontend analytics pages are in `pages/analytics/`.
-- README screenshots moved to `.github/assets/screenshots/`. `docs/` is no longer committed.
+- The README shows one preview image (`.github/assets/preview.png`). `docs/`, with the full screenshot set, is no longer committed.
 
 ### Fixed
 - `httpx` is now a runtime dependency. It was only in `requirements-dev.txt`, so the production image crashed on startup.

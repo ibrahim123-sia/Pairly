@@ -71,6 +71,6 @@ desktop.ini
 # Local portfolio screenshot gallery (kept on disk, not committed)
 /screenshots/
 
-# Internal notes and the screenshot script (kept on disk, not committed).
-# The README gallery is in .github/assets/screenshots.
+# Internal notes, screenshots and the screenshot script (kept on disk, not committed).
+# The README preview image is in .github/assets/preview.png.
 /docs/
