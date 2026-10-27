@@ -15,13 +15,13 @@ An AI layer then explains the results in plain English. It suggests next steps a
 
 Pairly is multi-tenant. A super admin creates stores, and each store manager only ever sees their own store's data.
 
-![Pairly dashboard with AI Insights](docs/screenshots/dashboard.png)
+![Pairly dashboard with AI Insights](.github/assets/screenshots/dashboard.png)
 
 | Bundles | Product network |
 |---|---|
-| ![Product bundles](docs/screenshots/bundles.png) | ![Product network graph](docs/screenshots/network.png) |
+| ![Product bundles](.github/assets/screenshots/bundles.png) | ![Product network graph](.github/assets/screenshots/network.png) |
 | **Customer segments (RFM)** | **Super admin: AI usage per store** |
-| ![RFM customer segments](docs/screenshots/customers-rfm.png) | ![Super-admin dashboard](docs/screenshots/admin.png) |
+| ![RFM customer segments](.github/assets/screenshots/customers-rfm.png) | ![Super-admin dashboard](.github/assets/screenshots/admin.png) |
 
 ## Features
 
@@ -60,9 +60,7 @@ Pairly is multi-tenant. A super admin creates stores, and each store manager onl
 | AI | Groq or Gemini via an OpenAI-compatible API (httpx), tool calling, Server-Sent Events |
 | Frontend | React 19, Vite 7, Tailwind CSS 3, Recharts, react-force-graph |
 | Quality | pytest (with a mock LLM), Ruff, ESLint, GitHub Actions |
-| Deploy | Cloudflare Workers + Containers + R2 + Cron Triggers, Neon PostgreSQL, Docker, docker compose |
-
-How the parts connect: [docs/architecture.md](docs/architecture.md).
+| Deploy | Cloudflare Workers + Containers + R2 + Cron Triggers, managed PostgreSQL (Neon or PlanetScale), Docker, docker compose |
 
 ## Quick start
 
@@ -169,34 +167,40 @@ Pairly/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py             # FastAPI app, CORS, routers
-│   │   ├── demo/               # sample_transactions.csv (4.6 MB demo data)
+│   │   ├── config.py           # settings from environment variables
+│   │   ├── database.py         # SQLAlchemy engine and session
 │   │   ├── dependencies.py     # auth and store scoping
+│   │   ├── schemas.py          # request and response models
 │   │   ├── models/             # SQLAlchemy models (incl. AI tables)
-│   │   ├── routers/            # auth, admin, store, analytics, ai
-│   │   ├── services/           # analytics, datasets, email, exports, ...
+│   │   ├── routers/            # auth, admin, store, analytics, ai, internal, health
+│   │   ├── services/           # analytics, datasets, email, exports, storage, scheduler
 │   │   │   └── ai/             # LLM gateway, number check, tools, insights, assistant
-│   │   └── utils/
+│   │   ├── utils/
+│   │   ├── templates/email/    # email templates (Jinja2)
+│   │   └── demo/               # sample_transactions.csv (4.6 MB demo data)
 │   ├── migrations/             # Alembic
 │   ├── scripts/                # seed_demo.py, make_sample.py
-│   ├── templates/email/
 │   ├── tests/                  # pytest (mock LLM, no network) + fixtures/
-│   ├── config.py · run.py · alembic.ini · pyproject.toml
+│   ├── run.py · alembic.ini · pyproject.toml
 │   ├── requirements.txt · requirements-dev.txt
 │   ├── Dockerfile · .dockerignore · docker-entrypoint.sh
 │   └── .env.example
 ├── frontend/
-│   ├── src/                    # pages, components, layouts, api, context
+│   ├── src/
+│   │   ├── api/                # axios client + one module per area
+│   │   ├── components/         # shared UI, incl. AI Insights card
+│   │   ├── context/            # auth and theme
+│   │   ├── layouts/            # store, admin and sign-in layouts
+│   │   ├── pages/              # analytics/, store/, admin/, auth/
+│   │   └── routes/             # route guards
 │   ├── public/
 │   ├── nginx/                  # nginx config for the Docker image
 │   ├── Dockerfile · vite.config.js
 │   └── .env.example
-├── docs/
-│   ├── architecture.md
-│   └── screenshots/
-├── .github/                    # CI workflow, issue and PR templates
 ├── cloudflare/                 # Worker + wrangler.jsonc: web app, API container, cron
+├── .github/                    # CI and deploy workflows, README screenshots
 ├── docker-compose.yml
-└── LICENSE · SECURITY.md · CONTRIBUTING.md · CHANGELOG.md
+└── README.md · CHANGELOG.md · SECURITY.md · LICENSE
 ```
 
 ## Tests
@@ -226,11 +230,11 @@ GitHub Actions runs everything on each push and pull request: the tests on SQLit
 
 ## Deployment
 
-Pairly runs entirely on **Cloudflare**, with the database on **Neon**:
+Pairly runs on **Cloudflare**, with a managed **PostgreSQL** database:
 
 ```
 Browser ──> Cloudflare Worker "pairly" ──┬── React web app (static files)
-                                         └── /api ──> Container: FastAPI ──┬── Neon PostgreSQL
+                                         └── /api ──> Container: FastAPI ──┬── PostgreSQL (Neon or PlanetScale)
                                                                            ├── R2 bucket (uploaded datasets)
                                                                            └── Groq, Gemini as fallback
 Cron Trigger (hourly) ──> /api/internal/scheduled-jobs/run
@@ -245,12 +249,14 @@ Cron Trigger (hourly) ──> /api/internal/scheduled-jobs/run
 | Account | Plan | Used for |
 |---|---|---|
 | [Cloudflare](https://dash.cloudflare.com) | Workers Paid, $5/month (Containers require it) | Worker, Container, R2, Cron |
-| [Neon](https://neon.tech) | Free | PostgreSQL |
+| [Neon](https://neon.tech), or PlanetScale through Cloudflare | Neon: Free | PostgreSQL (pick one, see below) |
 | [Groq](https://console.groq.com) / [Google AI Studio](https://aistudio.google.com) | Free tier | AI (optional; Gemini is the fallback) |
 
 ### 1. Create the services (once)
 
-1. **Neon:** create a project, open *Connect*, choose the **pooled** connection string and copy it (it ends with `sslmode=require`). This is `DATABASE_URL`.
+1. **PostgreSQL:** Cloudflare does not run PostgreSQL itself, so pick one of these. Pairly only needs the connection string as `DATABASE_URL`, so you can switch later without code changes.
+   - **Neon (free):** create a project, open *Connect*, choose the **pooled** connection string and copy it (it ends with `sslmode=require`).
+   - **PlanetScale Postgres (paid, on your Cloudflare bill):** create the database from the Cloudflare dashboard ([guide](https://developers.cloudflare.com/hyperdrive/planetscale/)), then copy its PostgreSQL connection string with `sslmode=require`.
 2. **R2:** in Cloudflare, go to *R2 → Create bucket* and name it `pairly-data`. Then open *Manage API tokens → Create API token* with **Object Read & Write** on that bucket, and copy the *Access Key ID* and *Secret Access Key*.
 3. **Cloudflare API token:** go to *My Profile → API Tokens → Create Token*, use the **Edit Cloudflare Workers** template and limit it to your account. Copy the token and your **Account ID** (shown on the dashboard). If a deploy fails while pushing the container image, add the *Containers: Edit* permission to the token.
 
@@ -262,7 +268,7 @@ In the repo, open *Settings → Secrets and variables → Actions → New reposi
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | The token from step 1.3 |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account id |
-| `DATABASE_URL` | The Neon connection string |
+| `DATABASE_URL` | The PostgreSQL connection string from step 1.1 |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | From the R2 API token |
 | `SECRET_KEY`, `JWT_SECRET_KEY`, `CRON_SECRET` | Three different random strings: `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
 | `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your admin login (production refuses the demo password) |
@@ -281,7 +287,7 @@ Afterwards:
 ### Good to know
 
 - **Cold starts.** The API container sleeps after 10 minutes without traffic. The first request after that takes up to about a minute while it starts and runs migrations.
-- **Costs.** The $5 plan includes 25 GiB-hours of container memory each month. The API uses the `basic` size (1 GiB) and only bills while awake. The hourly job check keeps it awake about 10 minutes per hour, which comes to roughly $1 a month extra. To check once a day instead, change `triggers.crons` in `wrangler.jsonc` to `"0 2 * * *"`. Neon and R2 stay within their free tiers for a demo.
+- **Costs.** The $5 plan includes 25 GiB-hours of container memory each month. The API uses the `basic` size (1 GiB) and only bills while awake. The hourly job check keeps it awake about 10 minutes per hour, which comes to roughly $1 a month extra. To check once a day instead, change `triggers.crons` in `wrangler.jsonc` to `"0 2 * * *"`. R2 and Neon stay within their free tiers for a demo.
 - **Big datasets** (hundreds of thousands of rows): change `instance_type` to `"standard-1"` (4 GiB) in `wrangler.jsonc`.
 - **Logs:** run `cd cloudflare && npx wrangler tail`, or open *Workers → pairly → Logs*.
 
