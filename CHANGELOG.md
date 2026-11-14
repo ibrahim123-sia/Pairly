@@ -34,6 +34,8 @@ The product is now called **Pairly** (formerly "Assortment Dashboard").
 - All backend code lives in the `app` package: `config.py` is now `app/config.py` and the email templates are in `app/templates/`. The frontend analytics pages are in `pages/analytics/`.
 - The README shows one preview image (`.github/assets/preview.png`). `docs/`, with the full screenshot set, is no longer committed.
 
+- The Cloudflare deployment starts with an empty database (`SEED_DEMO=false`): only the super admin from `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` exists. The deploy workflow now checks every required secret before it deploys.
+
 ### Fixed
 - `httpx` is now a runtime dependency. It was only in `requirements-dev.txt`, so the production image crashed on startup.
 

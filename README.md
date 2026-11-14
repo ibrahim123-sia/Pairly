@@ -265,13 +265,15 @@ In the repo, open *Settings → Secrets and variables → Actions → New reposi
 | `DATABASE_URL` | The PostgreSQL connection string from step 1.1 |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | From the R2 API token |
 | `SECRET_KEY`, `JWT_SECRET_KEY`, `CRON_SECRET` | Three different random strings: `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
-| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your admin login (production refuses the demo password) |
+| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your admin login, created on the first start (production refuses the demo password) |
 | `GROQ_API_KEY`, `GEMINI_API_KEY` | Optional, for the AI features |
 | `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | Optional, to send real emails; also set `MAIL_SUPPRESS_SEND` to `"false"` in `cloudflare/wrangler.jsonc` |
 
 ### 3. Deploy
 
-Go to *Actions → Deploy to Cloudflare → Run workflow*. The workflow builds the web app, builds and pushes the API image, deploys the Worker, and uploads the secrets. The app then runs at `https://pairly.<your-subdomain>.workers.dev`, with the demo store loaded.
+Go to *Actions → Deploy to Cloudflare → Run workflow*. The workflow builds the web app, builds and pushes the API image, deploys the Worker, and uploads the secrets. The app then runs at `https://pairly.<your-subdomain>.workers.dev`. The database starts empty: no demo store, only the super admin from `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
+
+Then sign in as the super admin, create a store and its manager (with `MAIL_SUPPRESS_SEND` on, the manager's temporary password is shown on screen), and the manager uploads a CSV on **My Datasets**. `SUPER_ADMIN_*` is only read when the account does not exist yet. To change the password later, use the app.
 
 Afterwards:
 - Put that address in `FRONTEND_URL` in [`cloudflare/wrangler.jsonc`](cloudflare/wrangler.jsonc); it's used in emails. Then run the workflow again.
@@ -281,7 +283,7 @@ Afterwards:
 ### Good to know
 
 - **Cold starts.** The API container sleeps after 10 minutes without traffic. The first request after that takes up to about a minute while it starts and runs migrations.
-- **Costs.** The $5 plan includes 25 GiB-hours of container memory each month. The API uses the `basic` size (1 GiB) and only bills while awake. The hourly job check keeps it awake about 10 minutes per hour, which comes to roughly $1 a month extra. To check once a day instead, change `triggers.crons` in `wrangler.jsonc` to `"0 2 * * *"`. R2 and Neon stay within their free tiers for a demo.
+- **Costs.** The $5 plan includes 25 GiB-hours of container memory each month. The API uses the `basic` size (1 GiB) and only bills while awake. The hourly job check keeps it awake about 10 minutes per hour, which comes to roughly $1 a month extra. To check once a day instead, change `triggers.crons` in `wrangler.jsonc` to `"0 2 * * *"`. R2 and Neon stay within their free tiers for light use.
 - **Big datasets** (hundreds of thousands of rows): change `instance_type` to `"standard-1"` (4 GiB) in `wrangler.jsonc`.
 - **Logs:** run `cd cloudflare && npx wrangler tail`, or open *Workers → pairly → Logs*.
 

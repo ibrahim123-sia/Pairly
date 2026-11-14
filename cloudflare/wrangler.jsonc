@@ -42,7 +42,8 @@
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "SCHEDULER_MODE": "external",
-    "SEED_DEMO": "background",
+    // Empty on purpose: no demo data. Only the super admin is created, from the secrets.
+    "SEED_DEMO": "false",
     "MAIL_SUPPRESS_SEND": "true",
     "AI_DAILY_REQUEST_LIMIT": "50",
     "R2_BUCKET": "pairly-data",
