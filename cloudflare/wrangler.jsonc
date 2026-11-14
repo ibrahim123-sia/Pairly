@@ -47,7 +47,6 @@
     "MAIL_SUPPRESS_SEND": "true",
     "AI_DAILY_REQUEST_LIMIT": "50",
     "R2_BUCKET": "pairly-data",
-    // Your public URL, e.g. https://pairly.<your-subdomain>.workers.dev (used in emails)
-    "FRONTEND_URL": ""
+    "FRONTEND_URL": "https://pairly.syedibrahimali.workers.dev"
   }
 }
