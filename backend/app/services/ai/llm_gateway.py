@@ -3,15 +3,15 @@
 Speaks the OpenAI-compatible chat completions API, which both Groq and Gemini
 offer. The provider is picked from env vars (see config.py):
 
-    LLM_PROVIDER   groq | gemini | none  (empty: Groq first)
-    GROQ_API_KEY / GEMINI_API_KEY
+    LLM_PROVIDER   groq | cloudflare | gemini | none  (empty: Groq first)
+    GROQ_API_KEY / GEMINI_API_KEY / CLOUDFLARE_AI_TOKEN + CLOUDFLARE_ACCOUNT_ID
     LLM_MODEL      optional model override for the primary provider
     LLM_BASE_URL   optional base URL override for the primary provider
 
 Every call has a timeout and is retried once on timeouts, connection errors,
 429 and 5xx. A stream is only retried if nothing has been received yet.
-When both keys are set, the other provider is an automatic fallback
-(FallbackGateway): if Groq still fails after its retry, Gemini answers.
+Every other provider that has a key is an automatic fallback
+(FallbackGateway): if Groq still fails after its retry, Cloudflare answers, then Gemini.
 """
 import json
 import logging
@@ -29,10 +29,18 @@ logger = logging.getLogger("pairly.ai")
 PROVIDERS = {
     "groq": {
         "base_url": "https://api.groq.com/openai/v1",
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-120b",
         "key_attr": "GROQ_API_KEY",
         "json_mode": True,
         "stream_usage": True,
+    },
+    "cloudflare": {
+        # Workers AI, OpenAI-compatible. The account id is part of the URL (see _base_url).
+        "base_url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+        "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "key_attr": "CLOUDFLARE_AI_TOKEN",
+        "json_mode": False,
+        "stream_usage": False,
     },
     "gemini": {
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
@@ -229,8 +237,8 @@ def resolve_providers(config=None):
     """Providers to use, in order, as [(name, api_key)], plus a reason when empty.
 
     The primary is LLM_PROVIDER if set, otherwise Groq. Every other provider
-    that has a key becomes a fallback, so with both keys set Groq answers and
-    Gemini takes over when Groq fails.
+    that has a key becomes a fallback, in the order of PROVIDERS (Groq, then
+    Cloudflare, then Gemini).
     """
     config = config or get_config()
     wanted = config.LLM_PROVIDER
@@ -241,6 +249,8 @@ def resolve_providers(config=None):
     order = [wanted] + [n for n in PROVIDERS if n != wanted] if wanted else list(PROVIDERS)
     chosen = [(n, getattr(config, PROVIDERS[n]["key_attr"], None)) for n in order]
     chosen = [(n, k) for n, k in chosen if k]
+    if not getattr(config, "CLOUDFLARE_ACCOUNT_ID", None):  # the Workers AI URL needs it
+        chosen = [(n, k) for n, k in chosen if n != "cloudflare"]
     return chosen, (None if chosen else "not_configured")
 
 
@@ -316,8 +326,10 @@ def build_gateway(config=None):
     for i, (name, key) in enumerate(chosen):
         primary = i == 0
         # LLM_MODEL / LLM_BASE_URL are provider-specific, so they only apply to the primary.
-        gateways.append(LLMGateway(name, key, config.LLM_MODEL if primary else None,
-                                   config.LLM_BASE_URL if primary else None, config.LLM_TIMEOUT_SECONDS))
+        base_url = config.LLM_BASE_URL if primary else None
+        if name == "cloudflare" and not base_url:
+            base_url = PROVIDERS[name]["base_url"].format(account_id=config.CLOUDFLARE_ACCOUNT_ID)
+        gateways.append(LLMGateway(name, key, config.LLM_MODEL if primary else None, base_url, config.LLM_TIMEOUT_SECONDS))
     return FallbackGateway(gateways), None
 
 

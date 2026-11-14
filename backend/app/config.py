@@ -106,10 +106,13 @@ class Config:
     LOGIN_LOCKOUT_MINUTES = _int(os.environ.get("LOGIN_LOCKOUT_MINUTES"), 15)
 
     # --- AI layer ---
-    # LLM_PROVIDER: groq | gemini | none. Empty picks the first provider with a key.
+    # LLM_PROVIDER: groq | cloudflare | gemini | none. Empty picks the first provider with a key.
     LLM_PROVIDER = (os.environ.get("LLM_PROVIDER") or "").strip().lower()
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or None
     GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or None
+    # Cloudflare Workers AI (free daily allowance). Needs a token with the Workers AI permission.
+    CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID") or None
+    CLOUDFLARE_AI_TOKEN = os.environ.get("CLOUDFLARE_AI_TOKEN") or None
     LLM_MODEL = os.environ.get("LLM_MODEL") or None
     LLM_BASE_URL = os.environ.get("LLM_BASE_URL") or None
     LLM_TIMEOUT_SECONDS = _float(os.environ.get("LLM_TIMEOUT_SECONDS"), 30.0)

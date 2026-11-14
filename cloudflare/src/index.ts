@@ -35,6 +35,8 @@ export interface Env {
   CRON_SECRET: string;
   GROQ_API_KEY?: string;
   GEMINI_API_KEY?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_AI_TOKEN?: string;
   // Optional: real email sending (also set MAIL_SUPPRESS_SEND to "false")
   MAIL_SERVER?: string;
   MAIL_PORT?: string;
@@ -64,6 +66,8 @@ const CONTAINER_ENV: (keyof Env)[] = [
   "CRON_SECRET",
   "GROQ_API_KEY",
   "GEMINI_API_KEY",
+  "CLOUDFLARE_ACCOUNT_ID",
+  "CLOUDFLARE_AI_TOKEN",
   "MAIL_SERVER",
   "MAIL_PORT",
   "MAIL_USERNAME",

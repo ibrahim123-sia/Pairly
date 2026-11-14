@@ -44,7 +44,7 @@
     "SCHEDULER_MODE": "external",
     // Empty on purpose: no demo data. Only the super admin is created, from the secrets.
     "SEED_DEMO": "false",
-    "MAIL_SUPPRESS_SEND": "true",
+    "MAIL_SUPPRESS_SEND": "false",
     "AI_DAILY_REQUEST_LIMIT": "50",
     "R2_BUCKET": "pairly-data",
     "FRONTEND_URL": "https://pairly.syedibrahimali.workers.dev"

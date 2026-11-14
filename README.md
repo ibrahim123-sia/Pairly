@@ -38,7 +38,7 @@ Pairly is multi-tenant. A super admin creates stores, and each store manager onl
   - AI on/off switch for each store (in Settings) and for the whole platform (super admin).
   - A daily request limit per store.
   - Usage and token counts per store on the super-admin dashboard.
-- **Providers.** Groq or Gemini through one OpenAI-compatible gateway, chosen with env vars. Without a key, Pairly still works and shows template summaries.
+- **Providers.** Groq, Cloudflare Workers AI or Gemini through one OpenAI-compatible gateway, chosen with env vars. Each provider with a key is tried in that order, so the next one answers if the first fails. Without a key, Pairly still works and shows template summaries.
 
 **Platform**
 - Stores, store managers and a super admin, with JWT sign-in, password reset and an audit log.
@@ -51,7 +51,7 @@ Pairly is multi-tenant. A super admin creates stores, and each store manager onl
 |---|---|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL (or SQLite) |
 | Analytics | pandas, NumPy, mlxtend (Apriori), ReportLab (PDF) |
-| AI | Groq or Gemini via an OpenAI-compatible API (httpx), tool calling, Server-Sent Events |
+| AI | Groq, Cloudflare Workers AI or Gemini via an OpenAI-compatible API (httpx), tool calling, Server-Sent Events |
 | Frontend | React 19, Vite 7, Tailwind CSS 3, Recharts, react-force-graph |
 | Quality | pytest (with a mock LLM), Ruff, ESLint, GitHub Actions |
 | Deploy | Cloudflare Workers + Containers + R2 + Cron Triggers, managed PostgreSQL (Neon or PlanetScale), Docker, docker compose |
@@ -70,7 +70,7 @@ docker compose up --build
 
 Open <http://localhost:8080>. This starts PostgreSQL, the API and the web app, and loads the demo data. API docs are at <http://localhost:5000/docs>.
 
-To turn on the AI features, create a file named `.env` next to `docker-compose.yml` with `GROQ_API_KEY=your-key` (or `GEMINI_API_KEY=...`), then run `docker compose up` again.
+To turn on the AI features, create a file named `.env` next to `docker-compose.yml` with `GROQ_API_KEY=your-key` (or `GEMINI_API_KEY=...`, or `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_AI_TOKEN`), then run `docker compose up` again.
 
 ### Option 2: Run it yourself
 
@@ -118,7 +118,7 @@ npm run dev
 
 Open <http://localhost:5173>. Vite forwards `/api` to the backend.
 
-**3. AI (optional).** Put `GROQ_API_KEY=...` or `GEMINI_API_KEY=...` in `backend/.env` and restart the backend.
+**3. AI (optional).** Put `GROQ_API_KEY=...`, `GEMINI_API_KEY=...` or `CLOUDFLARE_ACCOUNT_ID=...` and `CLOUDFLARE_AI_TOKEN=...` in `backend/.env` and restart the backend.
 
 ### Configuration
 
@@ -134,7 +134,7 @@ All settings are environment variables. The full list with comments is in [`back
 | `FRONTEND_URL` | Web app address, used in emails and always allowed by CORS |
 | `ALLOWED_ORIGINS`, `ALLOWED_ORIGIN_REGEX` | Extra CORS origins, and a regex for preview deploys |
 | `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | The super admin created on startup |
-| `LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `LLM_MODEL` | AI provider and model (all optional) |
+| `LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_AI_TOKEN`, `LLM_MODEL` | AI provider keys and model (all optional) |
 | `AI_ENABLED`, `AI_DAILY_REQUEST_LIMIT` | Default platform AI switch and requests per store per day |
 | `MAIL_*` | SMTP settings; `MAIL_SUPPRESS_SEND=true` logs emails instead of sending them |
 | `STORAGE_BACKEND`, `R2_*` | `r2` keeps uploaded datasets in a Cloudflare R2 bucket as well as on disk (default `local`) |
@@ -230,7 +230,7 @@ Pairly runs on **Cloudflare**, with a managed **PostgreSQL** database:
 Browser ──> Cloudflare Worker "pairly" ──┬── React web app (static files)
                                          └── /api ──> Container: FastAPI ──┬── PostgreSQL (Neon or PlanetScale)
                                                                            ├── R2 bucket (uploaded datasets)
-                                                                           └── Groq, Gemini as fallback
+                                                                           └── Groq, Cloudflare Workers AI, Gemini
 Cron Trigger (hourly) ──> /api/internal/scheduled-jobs/run
 ```
 
@@ -244,7 +244,7 @@ Cron Trigger (hourly) ──> /api/internal/scheduled-jobs/run
 |---|---|---|
 | [Cloudflare](https://dash.cloudflare.com) | Workers Paid, $5/month (Containers require it) | Worker, Container, R2, Cron |
 | [Neon](https://neon.tech), or PlanetScale through Cloudflare | Neon: Free | PostgreSQL (pick one, see below) |
-| [Groq](https://console.groq.com) / [Google AI Studio](https://aistudio.google.com) | Free tier | AI (optional; Gemini is the fallback) |
+| [Groq](https://console.groq.com), Cloudflare Workers AI, [Google AI Studio](https://aistudio.google.com) | Free tiers | AI (optional; each one is the fallback for the one before it) |
 
 ### 1. Create the services (once)
 
@@ -266,14 +266,14 @@ In the repo, open *Settings → Secrets and variables → Actions → New reposi
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | From the R2 API token |
 | `SECRET_KEY`, `JWT_SECRET_KEY`, `CRON_SECRET` | Three different random strings: `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
 | `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your admin login, created on the first start (production refuses the demo password) |
-| `GROQ_API_KEY`, `GEMINI_API_KEY` | Optional, for the AI features |
-| `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | Optional, to send real emails; also set `MAIL_SUPPRESS_SEND` to `"false"` in `cloudflare/wrangler.jsonc` |
+| `GROQ_API_KEY`, `GEMINI_API_KEY`, `CLOUDFLARE_AI_TOKEN` | Optional, for the AI features. `CLOUDFLARE_AI_TOKEN` is a separate token with only the *Workers AI* permission (not the deploy token) |
+| `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` | Optional, to send real emails; `MAIL_SUPPRESS_SEND` is already `"false"` in `cloudflare/wrangler.jsonc` (set it to `"true"` to log emails instead) |
 
 ### 3. Deploy
 
 Go to *Actions → Deploy to Cloudflare → Run workflow*. The workflow builds the web app, builds and pushes the API image, deploys the Worker, and uploads the secrets. The app then runs at `https://pairly.<your-subdomain>.workers.dev`. The database starts empty: no demo store, only the super admin from `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 
-Then sign in as the super admin, create a store and its manager (with `MAIL_SUPPRESS_SEND` on, the manager's temporary password is shown on screen), and the manager uploads a CSV on **My Datasets**. `SUPER_ADMIN_*` is only read when the account does not exist yet, so changing the secret later does not change the password. The admin screens have no password form; call `POST /api/auth/change-password` (a store manager can use **Settings**).
+Then sign in as the super admin, create a store and its manager (the manager gets the temporary password by email; if sending fails, it is shown on screen), and the manager uploads a CSV on **My Datasets**. `SUPER_ADMIN_*` is only read when the account does not exist yet, so changing the secret later does not change the password. The admin screens have no password form; call `POST /api/auth/change-password` (a store manager can use **Settings**).
 
 Afterwards:
 - Put that address in `FRONTEND_URL` in [`cloudflare/wrangler.jsonc`](cloudflare/wrangler.jsonc); it's used in emails. Then run the workflow again.

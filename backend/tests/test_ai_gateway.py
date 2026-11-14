@@ -20,12 +20,25 @@ from app.services.ai.llm_gateway import (
 
 
 def cfg(**kw):
-    base = dict(LLM_PROVIDER="", GROQ_API_KEY=None, GEMINI_API_KEY=None, LLM_MODEL=None, LLM_BASE_URL=None,
-                LLM_TIMEOUT_SECONDS=5.0)
+    base = dict(LLM_PROVIDER="", GROQ_API_KEY=None, GEMINI_API_KEY=None, CLOUDFLARE_AI_TOKEN=None, CLOUDFLARE_ACCOUNT_ID=None,
+                LLM_MODEL=None, LLM_BASE_URL=None, LLM_TIMEOUT_SECONDS=5.0)
     return SimpleNamespace(**{**base, **kw})
 
 
 # ---------------- provider order ----------------
+
+def test_cloudflare_sits_between_groq_and_gemini():
+    chosen, _ = resolve_providers(cfg(GROQ_API_KEY="g", GEMINI_API_KEY="m", CLOUDFLARE_AI_TOKEN="c", CLOUDFLARE_ACCOUNT_ID="acc1"))
+    assert [n for n, _ in chosen] == ["groq", "cloudflare", "gemini"]
+
+
+def test_cloudflare_needs_an_account_id_and_builds_its_url():
+    assert resolve_providers(cfg(CLOUDFLARE_AI_TOKEN="c")) == ([], "not_configured")
+    gw, _ = build_gateway(cfg(CLOUDFLARE_AI_TOKEN="c", CLOUDFLARE_ACCOUNT_ID="acc1"))
+    only = gw.gateways[0]
+    assert only.provider == "cloudflare" and only.model == "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    assert only.base_url == "https://api.cloudflare.com/client/v4/accounts/acc1/ai/v1"
+
 
 def test_groq_first_then_gemini_fallback():
     chosen, reason = resolve_providers(cfg(GROQ_API_KEY="g", GEMINI_API_KEY="m"))
@@ -121,7 +134,7 @@ def test_retries_once_on_503_then_succeeds():
     resp = _gateway(handler).complete([{"role": "user", "content": "hi"}], json_mode=True)
     assert resp.content == "ok" and resp.usage.total_tokens == 5 and len(calls) == 2
     body = json.loads(calls[0].content)
-    assert body["response_format"] == {"type": "json_object"} and body["model"] == "llama-3.3-70b-versatile"
+    assert body["response_format"] == {"type": "json_object"} and body["model"] == "openai/gpt-oss-120b"
     assert calls[0].headers["authorization"] == "Bearer test-key"
 
 

@@ -26,6 +26,8 @@ os.environ.update({
     "LLM_PROVIDER": "none",
     "GROQ_API_KEY": "",
     "GEMINI_API_KEY": "",
+    "CLOUDFLARE_AI_TOKEN": "",
+    "CLOUDFLARE_ACCOUNT_ID": "",
     "LLM_BASE_URL": "",
 })
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

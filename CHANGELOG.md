@@ -36,6 +36,9 @@ The product is now called **Pairly** (formerly "Assortment Dashboard").
 
 - The Cloudflare deployment starts with an empty database (`SEED_DEMO=false`): only the super admin from `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` exists. The deploy workflow now checks every required secret before it deploys.
 
+- Cloudflare Workers AI is a third LLM provider (`CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_AI_TOKEN`), tried after Groq and before Gemini. The Groq default model is now `openai/gpt-oss-120b`, because `llama-3.3-70b-versatile` is no longer available on Groq.
+- Emails are sent on the Cloudflare deployment (`MAIL_SUPPRESS_SEND` is `false` there).
+
 ### Fixed
 - `httpx` is now a runtime dependency. It was only in `requirements-dev.txt`, so the production image crashed on startup.
 
