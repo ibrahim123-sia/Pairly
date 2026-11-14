@@ -273,7 +273,7 @@ In the repo, open *Settings → Secrets and variables → Actions → New reposi
 
 Go to *Actions → Deploy to Cloudflare → Run workflow*. The workflow builds the web app, builds and pushes the API image, deploys the Worker, and uploads the secrets. The app then runs at `https://pairly.<your-subdomain>.workers.dev`. The database starts empty: no demo store, only the super admin from `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 
-Then sign in as the super admin, create a store and its manager (with `MAIL_SUPPRESS_SEND` on, the manager's temporary password is shown on screen), and the manager uploads a CSV on **My Datasets**. `SUPER_ADMIN_*` is only read when the account does not exist yet. To change the password later, use the app.
+Then sign in as the super admin, create a store and its manager (with `MAIL_SUPPRESS_SEND` on, the manager's temporary password is shown on screen), and the manager uploads a CSV on **My Datasets**. `SUPER_ADMIN_*` is only read when the account does not exist yet, so changing the secret later does not change the password. The admin screens have no password form; call `POST /api/auth/change-password` (a store manager can use **Settings**).
 
 Afterwards:
 - Put that address in `FRONTEND_URL` in [`cloudflare/wrangler.jsonc`](cloudflare/wrangler.jsonc); it's used in emails. Then run the workflow again.
