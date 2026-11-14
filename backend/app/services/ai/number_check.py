@@ -17,6 +17,11 @@ And it blocks the easy ways to slip a number through:
 
 Numbers inside words (bundle ids like "B001") are ignored, and so are leading
 list markers ("1. ") in chat answers.
+
+Numbers spelled out as words cannot be traced to the data, so they would slip
+past the check. Only small counts ("two products") are allowed in words; a
+percentage, a decimal or a tens/hundreds/thousands number in words ("sixty two
+point four percent") is reported as unverified.
 """
 import math
 import re
@@ -32,6 +37,18 @@ _NUMBER = re.compile(
 _LIST_MARKER = re.compile(r"(?m)^\s*\d{1,2}[.)]\s+")
 _PCT_KEY = re.compile(r"pct|percent|share|rate", re.I)
 _MULTIPLIER = {"k": 1e3, "m": 1e6, "bn": 1e9}
+_BIG_WORDS = (
+    r"(?:twenty|thirty|forty|fourty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion"
+    r"|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)"
+)
+_SMALL_WORDS = r"(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)"
+# Spaces, hyphens and the narrow no-break space some models emit between words.
+_SEP = r"[\s\-\u2010-\u2015\u202f]+"
+_SPELLED = re.compile(
+    rf"\b(?:{_BIG_WORDS}(?:{_SEP}(?:{_SMALL_WORDS}|{_BIG_WORDS}))*"
+    rf"|{_SMALL_WORDS}(?={_SEP}(?:percent|per\s?cent|point)\b))\b",
+    re.I,
+)
 
 
 def extract_numbers(text):
@@ -100,11 +117,14 @@ def _matches(value, decimals, mult, is_pct, candidates):
 def unverified_numbers(text, data):
     """Numbers in text that cannot be traced to data. Empty list means the text passes."""
     candidates = collect_values(data)
-    return [
+    bad = [
         raw
         for raw, value, decimals, mult, is_pct in extract_numbers(text)
         if not _matches(value, decimals, mult, is_pct, candidates)
     ]
+    # Words like "sixty two point four percent" cannot be checked: write digits instead.
+    bad.extend(m.group(0) for m in _SPELLED.finditer(str(text or "")))
+    return bad
 
 
 def verify(texts, data):

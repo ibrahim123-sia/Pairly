@@ -40,7 +40,8 @@ Strict rules:
 - Use ONLY numbers that appear in FACTS. You may round them (78.6 -> 79) but never calculate new
   numbers: no sums, differences, ratios or projections.
 - If you suggest a discount, use one of FACTS.suggested_discount_options_pct.
-- Write any other count in words ("two products"), never as a digit.
+- Write every number from FACTS as digits ("62.4%", "86 customers", "lift 2.4"), never as words.
+  Only a small count that is not in FACTS may be a word ("two products").
 - Percent fields end in _pct and are already percentages.
 - Do not invent products, customers or dates. If FACTS has nothing for a topic, skip that topic.
 - Plain English, no hype, no currency symbols.

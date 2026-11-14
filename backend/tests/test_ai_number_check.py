@@ -71,3 +71,17 @@ def test_extract_numbers_parses_formats():
 
 def test_evidence_can_be_a_list_of_sources():
     assert unverified_numbers("You asked about the top 5; the first has 42 orders.", ["top 5 products", {"orders": 42}]) == []
+
+
+def test_numbers_spelled_out_in_words_are_flagged():
+    facts = {"support_pct": 10.6, "confidence_pct": 62.4}
+    ok, bad = verify("Tea is bought with biscuits in sixty two point four percent of baskets.", facts)
+    assert not ok and bad
+    assert not verify("About eighty six customers are champions.", facts)[0]
+    assert not verify("Revenue share is twenty-two percent.", facts)[0]
+    assert not verify("Support is ten percent.", facts)[0]
+
+
+def test_small_counts_in_words_are_still_allowed():
+    facts = {"support_pct": 10.6}
+    assert verify("Two products sell together in 10.6% of baskets, one of them is tea.", facts)[0]
